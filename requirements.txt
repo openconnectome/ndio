@@ -4,5 +4,5 @@ h5py
 requests
 networkx
 scipy
-pymcubes
-pycollada
+# pymcubes
+# pycollada
