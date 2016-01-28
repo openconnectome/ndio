@@ -7,3 +7,5 @@ scipy
 pymcubes
 pycollada
 json-spec
+simplejson
+regex
