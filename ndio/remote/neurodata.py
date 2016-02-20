@@ -308,7 +308,6 @@ class neurodata(Remote):
         size = (x_stop-x_start)*(y_stop-y_start)*(z_stop-z_start)
 
         if size < 2E9 and memory:  # TODO
-
             return self._get_cutout_blosc_no_chunking(token, channel,
                                                       resolution, x_start,
                                                       x_stop, y_start, y_stop,
@@ -382,7 +381,7 @@ class neurodata(Remote):
                           req.status_code,
                           req.text))
 
-        return np.squeeze(blosc.unpack_array(req.content))
+        return numpy.squeeze(blosc.unpack_array(req.content))
 
         raise IOError("Failed to retrieve blosc cutout.")
 
