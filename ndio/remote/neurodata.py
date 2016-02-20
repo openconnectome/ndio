@@ -629,7 +629,6 @@ class neurodata(Remote):
         else:
             with tempfile.NamedTemporaryFile() as tmpfile:
                 tmpfile.write(req.content)
-                print tmpfile.name
                 tmpfile.seek(0)
                 h5file = h5py.File(tmpfile.name, "r")
 
