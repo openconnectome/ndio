@@ -263,7 +263,7 @@ class neurodata(Remote):
             memory (bool): if true, use blosc and return a numpy array without
                            writing to disk.  Good for image only requests that
                            fit in RAM.  Otherwise use existing hdf5 interface.
-
+                           TODO: chunking for this mode
         Returns:
             ndio.ramon.RAMONVolume: Downloaded data.
 
