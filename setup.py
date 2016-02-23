@@ -2,13 +2,20 @@ import ndio
 
 VERSION = ndio.version
 """
-roll with
+update docs with:
+sphinx-apidoc -f -o ./docs/source/ ./ndio *.py
+cd docs
+make html
+
+roll with:
+
 git tag VERSION
 git push --tags
 python setup.py sdist upload -r pypi
 """
 
 from distutils.core import setup
+from setuptools import setup
 setup(
     name = 'ndio',
     packages = [
@@ -43,6 +50,15 @@ setup(
         'MRI',
         'fMRI',
         'calcium'
+    ],
+    install_requires = [
+        'pillow',
+        'numpy',
+        'h5py',
+        'requests',
+        'scipy',
+        'json-spec',
+        'blosc'
     ],
     classifiers = [],
 )
