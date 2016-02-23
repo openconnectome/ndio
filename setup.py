@@ -52,11 +52,11 @@ setup(
         'calcium'
     ],
     install_requires = [
-        'pillow',
         'numpy',
+        'scipy',
+        'pillow',
         'h5py',
         'requests',
-        'scipy',
         'json-spec',
         'blosc'
     ],
