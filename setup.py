@@ -14,7 +14,8 @@ git push --tags
 python setup.py sdist upload -r pypi
 """
 
-from distutils.core import setup
+# from distutils.core import setup
+from setuptools import setup
 setup(
     name = 'ndio',
     packages = [
@@ -49,6 +50,15 @@ setup(
         'MRI',
         'fMRI',
         'calcium'
+    ],
+    install_requires = [
+        'numpy',
+        'scipy',
+        'pillow',
+        'h5py',
+        'requests',
+        'json-spec',
+        'blosc'
     ],
     classifiers = [],
 )
