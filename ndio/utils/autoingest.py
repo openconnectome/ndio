@@ -356,7 +356,7 @@ class AutoIngest:
 
         project_dict['public'] = public
         return project_dict
-    
+
     def identify_imagetype(self, data):
       """Identify the image type here with some parameters"""
       # UA TODO Implement what we will discuss here
@@ -377,15 +377,28 @@ class AutoIngest:
             token_name = data["project"]["project_name"]
         # UA TODO Here the check has to be extensive, what if the user is adding a channel to an exisitng project, then this will fail which is incorrect
         # Check if token exists
-        URLPath = "{}/ca/{}/info/".format(site_host, token_name)
+        URLPath = "{}{}/info/".format(site_host, token_name)
 
         try:
             response = requests.post(URLPath, data=json.dumps(data))
-            assert(str(response.content.decode("utf-8")) == "Token {} does not \
-exist".format(token_name))
         except:
-            raise TypeError("Token {} already exists, Information: {}\
-                ".format(token_name, response.content))
+            raise IOError("Error code contacting {} with code {} \
+                ".format(URLPath, response.status_code))
+
+        if (str(response.content.decode("utf-8")) != "Token {} does not \
+exist".format(token_name)):
+            online_data = response.content
+            try:
+                assert(online_data['dataset']['name']
+                    == data['dataset']['dataset_name'])
+                assert(online_data['dataset']['imagesize']
+                    == data['dataset']['imagesize'])
+                assert(online_data['dataset']['offset']
+                    == data['dataset']['offset'])
+                assert(online_data['project']['name']
+                    == data['project']['project_name'])
+            except:
+                raise TypeError("Project and Dataset information Inconistent")
 
         channel_names = list(data["channels"].copy().keys())
 
@@ -496,15 +509,10 @@ exist".format(token_name))
                         $&+,:;=?@#|'<>._^*()%!-].*\" in names")
 
 
-    def put_data(self, data, site_host, dev):
+    def put_data(self, data, site_host, legacy):
         # try to post data to the server
-        #import pdb; pdb.set_trace()
 
-        if dev:
-            URLPath = "{}/ca/autoIngest/".format(site_host)
-        else:
-            URLPath = "{}/ca/autoIngest/".format(site_host)
-
+        URLPath = "{}autoIngest/".format(site_host)
         try:
             response = requests.post(URLPath, data=json.dumps(data))
             assert(response.status_code == 200)
@@ -516,7 +524,7 @@ exist".format(token_name))
 
     def post_data(self,
         site_host=SITE_HOST,
-        file_name=None, dev=False, verifytype=VERIFY_BY_FOLDER):
+        file_name=None, legacy=False, verifytype=VERIFY_BY_FOLDER):
         """
         Arguements:
             site_host(str): The site host to post the data to, by default
@@ -537,6 +545,11 @@ exist".format(token_name))
             None
         """
 
+        if legacy:
+            site_host = "{}/ocp/ca/".format(site_host)
+        else:
+            site_host = "{}/ca/".format(site_host)
+
         if (file_name is None):
             complete_example = (
                 self.dataset, self.project, self.channels, self.metadata)
@@ -548,12 +561,12 @@ exist".format(token_name))
                     data = json.load(data_file)
             except:
                 raise IOError("Error opening file")
-        
-        # UA TODO You need to check if the token properties returned match with the properties which already exists here. You cannot do a blanket check. We can talk more about this in person.
-        # self.verify_path(data, site_host, verifytype)
-        self.verify_json(data)
 
-        self.put_data(data, site_host, dev)
+        # UA TODO You need to check if the token properties returned match with the properties which already exists here. You cannot do a blanket check. We can talk more about this in person.
+        self.verify_path(data, site_host, verifytype)
+        #self.verify_json(data)
+
+        self.put_data(data, site_host, legacy)
 
     def output_json(self, file_name='/tmp/ND.json'):
         """
