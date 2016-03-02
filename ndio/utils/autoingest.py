@@ -18,9 +18,9 @@ import requests
 from jsonspec.validators import load
 import re
 import shutil
+import ndio.remote.neurodata as nd
 
-# UA TODO HOST_NAME from neurodata folder. /ocp should be read from here not baked into the URL.
-SITE_HOST = 'http://openconnecto.me/ocp'
+SITE_HOST = 'openconnecto.me'
 VERIFY_BY_FOLDER = 'Folder'
 VERIFY_BY_SLICE = 'Slice'
 
@@ -134,11 +134,20 @@ PROJECT_SCHEMA = load({
 
 class AutoIngest:
 
-    def __init__(self):
+    def __init__(self, site_host=SITE_HOST):
+        """
+        Arguements:
+            site_host(str): The site host to post the data to, by default
+            http://openconnectome.me.
+
+        Returns:
+            None
+        """
         self.channels = {}
         self.dataset = []
         self.project = []
         self.metadata = ''
+        self.oo = nd(site_host)
 
     def add_channel(
         self, channel_name, datatype, channel_type, data_url, file_format,
@@ -362,6 +371,7 @@ class AutoIngest:
     def identify_imagetype(self, data):
       """Identify the image type here with some parameters"""
       # UA TODO Implement what we will discuss here
+      #
       pass
       return NotImplemented
 
@@ -371,15 +381,17 @@ class AutoIngest:
       pass
       return NotImplemented
 
-    def verify_path(self, data, site_host, verifytype):
+    def verify_path(self, data, verifytype):
         # Insert try and catch blocks
         try:
             token_name = data["project"]["token_name"]
         except:
             token_name = data["project"]["project_name"]
         # Check if token exists
-        URLPath = "{}{}/info/".format(site_host, token_name)
+        URLPath self.oo.url("{}/info/".format(token_name))
 
+        #UA TODO determine if the return will be in json for token not
+        #existing
         try:
             response = requests.post(URLPath, data=json.dumps(data))
         except:
@@ -482,7 +494,8 @@ exist".format(token_name)):
                 CHANNEL_SCHEMA.validate(channel_object)
             except:
                 self.output_json('/tmp/ND_{}.json'.format(channel_names[i]))
-                raise ValueError('Check input variables for channel schema. Dumping to /tmp/')
+                raise ValueError('Check input variables for channel schema.\
+Dumping to /tmp/')
             names.append(channel_object["channel_name"])
         # Dataset
         dataset_object = data["dataset"]
@@ -490,7 +503,8 @@ exist".format(token_name)):
             DATASET_SCHEMA.validate(dataset_object)
         except:
             self.output_json('/tmp/ND_dataset.json')
-            raise ValueError("Check input variables for dataset schema. Dumping to /tmp/")
+            raise ValueError("Check input variables for dataset schema. \
+Dumping to /tmp/")
         names.append(dataset_object["dataset_name"])
 
         # Project
@@ -499,7 +513,8 @@ exist".format(token_name)):
             PROJECT_SCHEMA.validate(project_object)
         except:
             self.output_json('/tmp/ND_project.json')
-            raise ValueError("Check input variables for project schema. Dumping to /tmp/")
+            raise ValueError("Check input variables for project schema. \
+Dumping to /tmp/")
         names.append(project_object["project_name"])
 
         # Check if names contain bad chars. Underscore is allowed
@@ -508,15 +523,17 @@ exist".format(token_name)):
         try:
           for i in names:
               if(spec_chars.match(i)):
-                raise ValueError("Error. No special characters allowed including: $&+,:;=?@#|'<>.^*()%!-].* in dataset, project, channel or token names")
+                raise ValueError("Error. No special characters allowed \
+including: $&+,:;=?@#|'<>.^*()%!-].* in dataset, project, channel or token \
+names")
         except ValueError as e:
           print e.args
 
 
-    def put_data(self, data, site_host):
+    def put_data(self, data):
         # try to post data to the server
 
-        URLPath = "{}autoIngest/".format(site_host)
+        URLPath = self.oo.url("autoIngest")
         try:
             response = requests.post(URLPath, data=json.dumps(data))
             assert(response.status_code == 200)
@@ -527,13 +544,9 @@ exist".format(token_name)):
 
 
     def post_data(self,
-        site_host=SITE_HOST,
         file_name=None, legacy=False, verifytype=VERIFY_BY_FOLDER):
         """
         Arguements:
-            site_host(str): The site host to post the data to, by default
-            http://openconnectome.me.
-
             file_name(str): The file name of the json file to post (optional).
             If this is left unspecified it is assumed the data is in the
             AutoIngets object.
@@ -549,11 +562,6 @@ exist".format(token_name)):
             None
         """
 
-        if legacy:
-            site_host = "{}/ocp/ca/".format(site_host)
-        else:
-            site_host = "{}/ca/".format(site_host)
-
         if (file_name is None):
             complete_example = (
                 self.dataset, self.project, self.channels, self.metadata)
@@ -566,8 +574,8 @@ exist".format(token_name)):
             except:
                 raise IOError("Error opening file")
 
-        self.verify_path(data, site_host, verifytype)
-        self.put_data(data, site_host)
+        self.verify_path(data, verifytype)
+        self.put_data(data)
 
     def output_json(self, file_name='/tmp/ND.json'):
         """
