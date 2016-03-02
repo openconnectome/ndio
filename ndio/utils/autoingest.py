@@ -193,9 +193,10 @@ class AutoIngest:
             None
         """
         self.channels[
-            channel_name] = [channel_name.strip().replace(" ", ""), datatype, channel_type.lower(), data_url,
-                             file_format, file_type, exceptions, resolution,
-                             windowrange, readonly]
+            channel_name] = [channel_name.strip().replace(" ", ""), datatype,
+                            channel_type.lower(), data_url,
+                            file_format, file_type, exceptions, resolution,
+                            windowrange, readonly]
 
     def add_project(self, project_name, token_name='', public=0):
         """
@@ -216,15 +217,15 @@ class AutoIngest:
         Returns:
             None
         """
-
-        # UA TODO We have to assume that the user is totally and completely STUPID(trust me they are). They cannot follow our instructions at all. Here we santize the input as much possible before it reaches the schema-validation. For example, remove any white spaces, convert everything in channle type to lower case and so on.
-        self.project = (project_name.strip().replace(" ", ""), token_name.strip().replace(" ", ""), public)
+        self.project = (project_name.strip().replace(" ", ""),
+                            token_name.strip().replace(" ", ""), public)
 
     def add_dataset(self, dataset_name, imagesize, voxelres,
                     offset=(0, 0, 0), timerange=(0, 0), scalinglevels=0,
                     scaling=0):
-        self.dataset = (dataset_name.strip().replace(" ", ""), imagesize, voxelres,
-                        offset, timerange, scalinglevels, scaling)
+        self.dataset = (dataset_name.strip().replace(" ", ""), imagesize,
+                            voxelres, offset, timerange, scalinglevels,
+                            scaling)
         """
         Arguments:
             dataset_name (str): Dataset Name is the overarching name of the
@@ -376,7 +377,6 @@ class AutoIngest:
             token_name = data["project"]["token_name"]
         except:
             token_name = data["project"]["project_name"]
-        # UA TODO Here the check has to be extensive, what if the user is adding a channel to an exisitng project, then this will fail which is incorrect
         # Check if token exists
         URLPath = "{}{}/info/".format(site_host, token_name)
 
@@ -505,7 +505,6 @@ exist".format(token_name)):
         # Check if names contain bad chars. Underscore is allowed
         spec_chars = re.compile(".*[$&+,:;=?@#|'<>.^*()%!-].*")
 
-        # TODO UA I want exception handling for each error in this format. print e.args gives the user only the message and not the whole trace. The user here is a neuroscience major who does not care about the traceback only about the error.
         try:
           for i in names:
               if(spec_chars.match(i)):
@@ -514,7 +513,7 @@ exist".format(token_name)):
           print e.args
 
 
-    def put_data(self, data, site_host, legacy):
+    def put_data(self, data, site_host):
         # try to post data to the server
 
         URLPath = "{}autoIngest/".format(site_host)
@@ -567,11 +566,8 @@ exist".format(token_name)):
             except:
                 raise IOError("Error opening file")
 
-        # UA TODO You need to check if the token properties returned match with the properties which already exists here. You cannot do a blanket check. We can talk more about this in person.
         self.verify_path(data, site_host, verifytype)
-        #self.verify_json(data)
-
-        self.put_data(data, site_host, legacy)
+        self.put_data(data, site_host)
 
     def output_json(self, file_name='/tmp/ND.json'):
         """
