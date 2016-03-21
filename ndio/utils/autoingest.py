@@ -333,7 +333,7 @@ class AutoIngest:
 
     def dataset_dict(
         self, dataset_name, imagesize, voxelres,
-            offset=[0, 0, 0], timerange=[0, 0], scalinglevels=0, scaling=0):
+            offset, timerange, scalinglevels, scaling):
         """Generate the dataset dictionary"""
         dataset_dict = {}
         dataset_dict['dataset_name'] = dataset_name
@@ -351,8 +351,8 @@ class AutoIngest:
 
     def channel_dict(
         self, channel_name, datatype, channel_type, data_url, file_format,
-            file_type, exceptions=0, resolution=0,
-            windowrange=[0, 0], readonly=0):
+            file_type, exceptions, resolution,
+            windowrange, readonly):
         """Genearte the project dictionary"""
         channel_dict = {}
         channel_dict['channel_name'] = channel_name
@@ -371,7 +371,7 @@ class AutoIngest:
         channel_dict['file_type'] = file_type
         return channel_dict
 
-    def project_dict(self, project_name, token_name=None, public=0):
+    def project_dict(self, project_name, token_name, public):
         """Genarate the project dictionary"""
         project_dict = {}
         project_dict['project_name'] = project_name
@@ -397,7 +397,6 @@ class AutoIngest:
     def identify_imagesize(self, work_path, image_type):
       """Identify the image size using the data location and other parameters"""
       # UA TODO Implement what we will discuss here
-
 
       resp = requests.get(work_path, stream=True)
       with open('/tmp/img.{}'.format(image_type),
@@ -437,7 +436,7 @@ exist".format(token_name)):
                 assert(online_data['project']['name']
                     == data['project']['project_name'])
             except:
-                raise TypeError("Project and Dataset information Inconistent")
+                raise ValueError("Project and Dataset information Inconistent")
 
         channel_names = list(data["channels"].copy().keys())
 
@@ -447,10 +446,22 @@ exist".format(token_name)):
             path = data["channels"][channel_names[i]]["data_url"]
             aws_pattern = re.compile("^(http:\/\/)(.+)(\.s3\.amazonaws\.com)")
             file_type = data["channels"][channel_names[i]]["file_type"]
-            if (data["dataset"]["scaling"]) == 0:
-                offset = data["dataset"]["offset"][0]
+            if "scaling" in data["dataset"]:
+                if (data["dataset"]["scaling"]) == 0:
+                    if "offset" in data["dataset"]:
+                        offset = data["dataset"]["offset"][0]
+                    else:
+                        offset = 0
+                else:
+                    if "offset" in data["dataset"]:
+                        offset = data["dataset"]["offset"][2]
+                    else:
+                        offset = 0
             else:
-                offset = data["dataset"]["offset"][1]
+                if "offset" in data["dataset"]:
+                    offset = data["dataset"]["offset"][0]
+                else:
+                    offset = 0
 
             if (aws_pattern.match(path)):
                 verifytype = VERIFY_BY_SLICE
@@ -522,18 +533,14 @@ exist".format(token_name)):
             try:
                 CHANNEL_SCHEMA.validate(channel_object)
             except:
-                self.output_json('/tmp/ND_{}.json'.format(channel_names[i]))
-                raise ValueError('Check input variables for channel schema.\
-Dumping to /tmp/')
+                raise ValueError("channel " + channel_object["channel_name"])
             names.append(channel_object["channel_name"])
-        # Dataset
+        # Dataset"
         dataset_object = data["dataset"]
         try:
             DATASET_SCHEMA.validate(dataset_object)
         except:
-            self.output_json('/tmp/ND_dataset.json')
-            raise ValueError("Check input variables for dataset schema. \
-Dumping to /tmp/")
+            raise ValueError("Error in dataset parameters")
         names.append(dataset_object["dataset_name"])
 
         # Project
@@ -541,9 +548,7 @@ Dumping to /tmp/")
         try:
             PROJECT_SCHEMA.validate(project_object)
         except:
-            self.output_json('/tmp/ND_project.json')
-            raise ValueError("Check input variables for project schema. \
-Dumping to /tmp/")
+            raise ValueError("Error in project parameters")
         names.append(project_object["project_name"])
 
         # Check if names contain bad chars. Underscore is allowed
@@ -621,13 +626,16 @@ names")
         complete_example = (
             self.dataset, self.project, self.channels, self.metadata)
         data = json.loads(self.nd_json(*complete_example))
-        try:
-            self.verify_json(data)
-            self.verify_path(data, VERIFY_BY_SLICE)
-        except:
-            raise ValueError("Error Verifying File")
-            return "Failure"
+
+        self.verify_json(data)
+        self.verify_path(data, VERIFY_BY_SLICE)
 
         f = open(file_name, 'w')
         f.write(data)
         f.close()
+
+class JsonVerifyFail(Exception):
+    def __init___(self,dErrorArguments=None):
+        Exception.__init__(self,"The following fields contain characters \
+that are invalid {0}".format(dErrArguments))
+        self.dErrorArguments = dErrorArguements
