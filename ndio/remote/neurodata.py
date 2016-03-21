@@ -1,15 +1,13 @@
 from __future__ import absolute_import
+import ndio
 import requests
-import h5py
 import os
 import numpy
-try:
-    from io import BytesIO as StringIO
-except ImportError:
-    from io import BytesIO as StringIO
+from io import BytesIO
 import zlib
 import tempfile
 import blosc
+import h5py
 
 from .Remote import Remote
 from .errors import *
@@ -25,6 +23,7 @@ except ImportError:
     import urllib2
 
 DEFAULT_HOSTNAME = "openconnecto.me"
+DEFAULT_SUFFIX = "ocp"
 DEFAULT_PROTOCOL = "http"
 
 
@@ -42,8 +41,17 @@ class neurodata(Remote):
                  meta_root="http://lims.neurodata.io/",
                  meta_protocol=DEFAULT_PROTOCOL, **kwargs):
 
+        r = requests.get('https://pypi.python.org/pypi/ndio/json').json()
+        r = r['info']['version']
+        if r != ndio.version and not kwargs.get('suppress_warnings', False):
+            print("A newer version of ndio is available. " +
+                  "'pip install -U ndio' to update. Pass " +
+                  "'suppress_warnings=True' to the neurodata " +
+                  "constructor to suppress this message.")
+
         self._check_tokens = kwargs.get('check_tokens', False)
         self._chunk_threshold = kwargs.get('chunk_threshold', 1E9 / 4)
+        self._ext = kwargs.get('suffix', DEFAULT_SUFFIX)
 
         # Prepare meta url
         self.meta_root = meta_root
@@ -92,7 +100,7 @@ class neurodata(Remote):
         Returns:
             str: The complete URL
         """
-        return super(neurodata, self).url('/ocp/ca/' + suffix)
+        return super(neurodata, self).url('{}/ca/'.format(self._ext) + suffix)
 
     def meta_url(self, suffix=""):
         """
@@ -664,7 +672,7 @@ class neurodata(Remote):
                                  data, resolution):
 
         data = numpy.expand_dims(data, axis=0)
-        tempfile = StringIO()
+        tempfile = BytesIO()
         numpy.save(tempfile, data)
         compressed = zlib.compress(tempfile.getvalue())
 
@@ -697,6 +705,8 @@ class neurodata(Remote):
         Arguments:
             token (str): Project to use
             channel (str): Channel to use (default 'annotation')
+            ramon_type (int : None): Optional. If set, filters IDs and only
+                returns those of RAMON objects of the requested type.
         Returns:
             int[]: A list of the ids of the returned RAMON objects
         Raises:
@@ -724,7 +734,7 @@ class neurodata(Remote):
             raise IOError("Could not successfully mock HDF5 file for parsing.")
 
     @_check_token
-    def get_ramon(self, token, channel, ids, resolution,
+    def get_ramon(self, token, channel, ids, resolution=None,
                   metadata_only=False, sieve=None, batch_size=100):
         """
         Download a RAMON object by ID.
@@ -735,7 +745,8 @@ class neurodata(Remote):
             ids (int, str, int[], str[]): The IDs of a RAMON object to gather.
                 Can be int (3), string ("3"), int[] ([3, 4, 5]), or string
                 (["3", "4", "5"]).
-            resolution (int): Resolution
+            resolution (int : None): Resolution. Defaults to the most granular
+                resolution (0 for now)
             metadata_only (bool : False):  If True, returns get_ramon_metadata
             sieve (function : None): A function that accepts a single ramon
                 and returns True or False depending on whether you want that
@@ -768,11 +779,17 @@ class neurodata(Remote):
 
         b_size = min(100, batch_size)
 
+        mdata = self.get_ramon_metadata(token, channel, ids)
+
         if metadata_only:
-            return self.get_ramon_metadata(token, channel, ids)
+            return mdata
+
+        if resolution is None:
+            resolution = 0 # probably should be dynamic...
 
         BATCH = False
-        if type(ids) is int:
+
+        if type(ids) is not list:
             ids = [ids]
         if type(ids) is list:
             ids = [str(i) for i in ids]
@@ -794,21 +811,13 @@ class neurodata(Remote):
         return rs
 
     def _get_ramon_batch(self, token, channel, ids, resolution):
-        url = self.url("{}/{}/{}/cutout/{}/".format(token, channel,
-                                                    ",".join(ids), resolution))
+        url = self.url("{}/{}/{}/json/".format(token, channel, ",".join(ids)))
         req = requests.get(url)
 
         if req.status_code is not 200:
             raise RemoteDataNotFoundError('No data for id {}.'.format(ids))
         else:
-
-            with tempfile.NamedTemporaryFile() as tmpfile:
-                tmpfile.write(req.content)
-                tmpfile.seek(0)
-                h5file = h5py.File(tmpfile.name, "r")
-
-                rs = [ramon.hdf5_to_ramon(h5file, i) for i in ids]
-                return rs
+            return ramon.from_json(req.json())
 
     @_check_token
     def get_ramon_metadata(self, token, channel, anno_id):
@@ -860,19 +869,11 @@ class neurodata(Remote):
 
     def _get_single_ramon_metadata(self, token, channel, anno_id):
         req = requests.get(self.url() +
-                           "{}/{}/{}/nodata/".format(token, channel,
+                           "{}/{}/{}/json/".format(token, channel,
                                                      anno_id))
-
         if req.status_code is not 200:
             raise RemoteDataNotFoundError('No data for id {}.'.format(anno_id))
-        else:
-            with tempfile.NamedTemporaryFile() as tmpfile:
-                tmpfile.write(req.content)
-                tmpfile.seek(0)
-                h5file = h5py.File(tmpfile.name, "r")
-
-                r = ramon.hdf5_to_ramon(h5file)
-                return r
+        return ramon.from_json(req.json())
 
     @_check_token
     def reserve_ids(self, token, channel, quantity):
