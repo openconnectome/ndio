@@ -19,8 +19,9 @@ from jsonspec.validators import load
 import re
 import shutil
 import ndio.remote.neurodata as nd
+import ndio.convert.tiff as ndtiff
+import ndio.convert.png as ndpng
 
-SITE_HOST = 'openconnecto.me'
 VERIFY_BY_FOLDER = 'Folder'
 VERIFY_BY_SLICE = 'Slice'
 
@@ -31,15 +32,18 @@ CHANNEL_SCHEMA = load({
     "properties": {
         "channel_name": {
             "description": "Channel name for the channel",
-            "type": "string"
+            "type": "string",
+            "pattern": "^[^$&+,:;=?@#|'<>.^*()%!-]+$"
         },
         "datatype": {
             "description": "Datatype of the channel",
-            "enum": ["uint8", "uint16", "uint32", "uint64", "float32"]
+            "enum": ["uint8", "uint16", "uint32", "uint64", "float32"],
+            "pattern": "^(uint8|uint16|uint32|uint64|float32)$"
         },
         "channel_type": {
             "description": "Type of Scaling - Isotropic(1) or Normal(0)",
-            "enum": ["image", "annotation", "probmap", "timeseries"]
+            "enum": ["image", "annotation", "probmap", "timeseries"],
+            "pattern": "^(image|annotation|probmap|timeseries)$"
         },
         "exceptions": {
             "description": "Enable exceptions - Yes(1) or No(0) (for annotation data)",
@@ -51,7 +55,8 @@ CHANNEL_SCHEMA = load({
         },
         "windowrange": {
             "description": "Window clamp function for 16-bit channels with low max value of pixels",
-            "type": "array"
+            "type": "array",
+            "pattern": "^\([0-9]+,[0-9]+\)$"
         },
         "readonly": {
             "description": "Read-only Channel(1) or Not(0). You can remotely post to channel if it is not readonly and overwrite data",
@@ -59,15 +64,18 @@ CHANNEL_SCHEMA = load({
         },
         "data_url": {
             "description": "This url points to the root directory of the files. Dropbox is not an acceptable HTTP Server.",
-            "type": "string"
+            "type": "string",
+            "pattern": "^http:\/\/.*\/"
         },
         "file_format": {
             "description": "This is the file format type. For now we support only Slice stacks and CATMAID tiles.",
-            "enum": ["SLICE", "CATMAID"]
+            "enum": ["SLICE", "CATMAID"],
+            "pattern": "^(SLICE|CATMAID)$"
         },
         "file_type": {
             "description": "This the file type the data is stored in",
-            "enum": ["tif", "png", "tiff"]
+            "enum": ["tif", "png", "tiff"],
+            "pattern": "^(tif|png|tiff)$"
         },
     },
     "required": ["channel_name", "channel_type", "data_url", "datatype", "file_format", "file_type"]
@@ -80,23 +88,28 @@ DATASET_SCHEMA = load({
     "properties": {
         "dataset_name": {
             "description": "The name of the dataset",
-            "type": "string"
+            "type": "string",
+            "pattern": "^[^$&+,:;=?@#|'<>.^*()%!-]+$"
         },
         "imagesize": {
             "type": "array",
             "description": "The image dimensions of the dataset",
+            "pattern": "^\([0-9]+,[0-9]+,[0-9]+\)$"
         },
         "voxelres": {
             "type": "array",
             "description": "The voxel resolutoin of the data",
+            "pattern": "^\([0-9]+\.[0-9]+,[0-9]+\.[0-9]+,[0-9]+\.[0-9]+\)$"
         },
         "offset": {
             "type": "array",
             "description": "The dimensions offset from origin",
+            "pattern": "^\([0-9]+,[0-9]+,[0-9]+\)$"
         },
         "timerange": {
             "description": "The timerange of the data",
             "type": "array",
+            "pattern": "^\([0-9]+,[0-9]+\)$"
         },
         "scalinglevels": {
             "description": "Required Scaling levels/ Zoom out levels",
@@ -117,7 +130,8 @@ PROJECT_SCHEMA = load({
     "properties": {
         "project_name": {
             "description": "The name of the project",
-            "type": "string"
+            "type": "string",
+            "pattern": "^[^$&+,:;=?@#|'<>.^*()%!-]+$"
         },
         "public": {
             "description": "Whether or not the project is publicly viewable, by default not",
@@ -125,7 +139,8 @@ PROJECT_SCHEMA = load({
         },
         "token_name":  {
             "description": "The token name for the project, by default same as project_name",
-            "type": "string"
+            "type": "string",
+            "pattern": "^[^$&+,:;=?@#|'<>.^*()%!-]+$"
         },
     },
     "required": ["project_name"]
@@ -134,7 +149,7 @@ PROJECT_SCHEMA = load({
 
 class AutoIngest:
 
-    def __init__(self, site_host=SITE_HOST):
+    def __init__(self, site_host=None):
         """
         Arguements:
             site_host(str): The site host to post the data to, by default
@@ -147,12 +162,15 @@ class AutoIngest:
         self.dataset = []
         self.project = []
         self.metadata = ''
-        self.oo = nd(site_host)
+        if site_host is not None:
+            self.oo = nd(site_host)
+        else:
+            self.oo = nd()
 
     def add_channel(
         self, channel_name, datatype, channel_type, data_url, file_format,
-            file_type, exceptions=0, resolution=0,
-            windowrange=None, readonly=0):
+            file_type, exceptions=None, resolution=None,
+            windowrange=None, readonly=None):
         """
         Arguments:
             channel_name (str): Channel Name is the specific name of a
@@ -207,7 +225,7 @@ class AutoIngest:
                             file_format, file_type, exceptions, resolution,
                             windowrange, readonly]
 
-    def add_project(self, project_name, token_name='', public=0):
+    def add_project(self, project_name, token_name=None, public=None):
         """
         Arguments:
             project_name (str): Project name is the specific project within
@@ -230,8 +248,8 @@ class AutoIngest:
                             token_name.strip().replace(" ", ""), public)
 
     def add_dataset(self, dataset_name, imagesize, voxelres,
-                    offset=(0, 0, 0), timerange=(0, 0), scalinglevels=0,
-                    scaling=0):
+                    offset=None, timerange=None, scalinglevels=None,
+                    scaling=None):
         self.dataset = (dataset_name.strip().replace(" ", ""), imagesize,
                             voxelres, offset, timerange, scalinglevels,
                             scaling)
@@ -365,7 +383,8 @@ class AutoIngest:
         else:
             project_dict['token_name'] = project_name
 
-        project_dict['public'] = public
+        if public is not None:
+            project_dict['public'] = public
         return project_dict
 
     def identify_imagetype(self, data):
@@ -375,11 +394,18 @@ class AutoIngest:
       pass
       return NotImplemented
 
-    def identify_imagesize(self, data):
-      """Identify the image size usging the data location and other parameters"""
+    def identify_imagesize(self, work_path, image_type):
+      """Identify the image size using the data location and other parameters"""
       # UA TODO Implement what we will discuss here
-      pass
-      return NotImplemented
+
+
+      resp = requests.get(work_path, stream=True)
+      with open('/tmp/img.{}'.format(image_type),
+              'wb') as out_file:
+          shutil.copyfileobj(resp.raw, out_file)
+      if (image_type.lower()=='png'):
+          nd.import_png('/tmp/img.png')
+
 
     def verify_path(self, data, verifytype):
         # Insert try and catch blocks
@@ -388,7 +414,7 @@ class AutoIngest:
         except:
             token_name = data["project"]["project_name"]
         # Check if token exists
-        URLPath self.oo.url("{}/info/".format(token_name))
+        URLPath = self.oo.url("{}/info/".format(token_name))
 
         #UA TODO determine if the return will be in json for token not
         #existing
@@ -452,7 +478,7 @@ exist".format(token_name)):
                             resp = requests.get(work_path, stream=True)
                             with open('/tmp/img.{}'.format(channel_type),
                                     'wb') as out_file:
-                                shutil.copyfileobj(response.raw, out_file)
+                                shutil.copyfileobj(resp.raw, out_file)
                             assert(resp.status_code == 200)
                     except:
                         raise IOError('Files are not http accessible: \
@@ -483,6 +509,9 @@ exist".format(token_name)):
                 except:
                     raise IOError('Files are not http accessible: \
                         URL: {}'.format(work_path))
+
+
+            #By Here the path should have been verified
 
     def verify_json(self, data):
         names = []
@@ -544,19 +573,21 @@ names")
 
 
     def post_data(self,
-        file_name=None, legacy=False, verifytype=VERIFY_BY_FOLDER):
+        file_name=None, legacy=False, verifytype=VERIFY_BY_SLICE):
         """
         Arguements:
             file_name(str): The file name of the json file to post (optional).
             If this is left unspecified it is assumed the data is in the
-            AutoIngets object.
+            AutoIngest object.
 
             dev(bool): If pushing to a microns dev branch server set this
             to True, if not leave False.
 
             verifytype(enum): Set http verification type, by checking the
-            first slice is accessible or by checking channel folder. Enum:
-            [Folder, Slice]
+            first slice is accessible or by checking channel folder.
+            NOTE: If verification occurs by folder there is NO image size
+            or type verification.
+            Enum: [Folder, Slice]
 
         Returns:
             None
@@ -575,6 +606,7 @@ names")
                 raise IOError("Error opening file")
 
         self.verify_path(data, verifytype)
+        self.verify_json(data)
         self.put_data(data)
 
     def output_json(self, file_name='/tmp/ND.json'):
@@ -588,8 +620,13 @@ names")
         """
         complete_example = (
             self.dataset, self.project, self.channels, self.metadata)
-        data = self.nd_json(*complete_example)
-        self.verify_json(json.loads(data))
+        data = json.loads(self.nd_json(*complete_example))
+        try:
+            self.verify_json(data)
+            self.verify_path(data, VERIFY_BY_SLICE)
+        except:
+            raise ValueError("Error Verifying File")
+            return "Failure"
 
         f = open(file_name, 'w')
         f.write(data)

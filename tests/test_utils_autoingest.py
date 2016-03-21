@@ -8,7 +8,7 @@ import os
 import numpy
 import sys
 
-SERVER_SITE = 'http://ec2-54-201-19-176.us-west-2.compute.amazonaws.com/'
+#SERVER_SITE = 'http://ec2-54-201-19-176.us-west-2.compute.amazonaws.com/'
 DATA_SITE = 'http://ec2-54-200-215-161.us-west-2.compute.amazonaws.com/'
 S3_SITE = 'http://ndios3test.s3.amazonaws.com/'
 
@@ -17,153 +17,109 @@ class TestAutoIngest(unittest.TestCase):
 
     def setUp(self):
         self.i = datetime.datetime.now()
-        self.oo = nd(SERVER_SITE[len('http://'):])
-"""
+        #self.oo = nd(SERVER_SITE[len('http://'):])
+        self.oo = nd()
+        #self.AI = AutoIngest()
+
     def test_remote_exists(self):
         self.assertEqual(self.oo.ping(), 200)
 
-    def test_pull_data(self):
-
-        data_name_1 = "ndiotest1%s%s%s%s%s%s%s" % (self.i.year, self.i.month,
-                                                 self.i.day, self.i.hour,
-                                                 self.i.minute, self.i.second,
-                                                 sys.version_info[0])
-
+    def test_bad_channel(self):
+        #Test channel misnamed/not preset
+        data_name_1 = 'ndio_test_1'
         ai_1 = AutoIngest.AutoIngest()
-        ai_1.add_channel(data_name_1, 'uint8',
-                         'image', DATA_SITE, 'SLICE', 'tif')
+        ai_1.add_channel('data_name_1', 'uint8', 'image', DATA_SITE, 'SLICE', 'tif')
         ai_1.add_project(data_name_1, data_name_1, 1)
         ai_1.add_dataset(data_name_1, (512, 512, 1), (1.0, 1.0, 10.0))
         ai_1.add_metadata('')
-        ai_1.post_data(site_host=SERVER_SITE, verifytype='Slice')
+        assert (ai_1.output_json()=='Failure')
 
-        url = "{}/ocp/ca/{}/{}/npz/0/0,500/0,500/0,1/".format(SERVER_SITE,
-                                                              data_name_1,
-                                                              data_name_1)
-        response = requests.get(url)
-
-        try:
-            self.assertEqual(response.headers['content-type'], 'product/npz')
-        except:
-            raise ValueError(response.content, url)
-
-    def test_post_data(self):
-        data_name_5 = "s3ndioawstest5%s%s%s%s%s%s%sf" % (self.i.year,
-                                                     self.i.month,
-                                                     self.i.day, self.i.hour,
-                                                     self.i.minute,
-                                                     self.i.second,
-                                                     sys.version_info[0])
-
-        ai_5 = AutoIngest.AutoIngest()
-        ai_5.add_channel(data_name_5, 'uint8',
-                         'image', DATA_SITE, 'SLICE', 'tif')
-        ai_5.add_project(data_name_5, data_name_5, 1)
-        ai_5.add_dataset(data_name_5, (512, 512, 1), (1.0, 1.0, 1.0))
-        ai_5.add_metadata('')
-        ai_5.post_data(site_host=SERVER_SITE, verifytype='Slice')
-
-        url = "{}/ocp/ca/{}/{}/npz/0/0,500/0,500/0,1/".format(SERVER_SITE,
-                                                              data_name_5,
-                                                              data_name_5)
-        response = requests.get(url)
-
-        try:
-            self.assertEqual(response.headers['content-type'], 'product/npz')
-        except:
-            raise ValueError(response.content, url)
-
-    def test_post_json(self):
-        try:
-            os.remove("/tmp/ND.json")
-        except:
-            print("")
-
-        data_name_2 = "ndiotest2%s%s%s%s%s%s%sf" % (self.i.year, self.i.month,
-                                                  self.i.day, self.i.hour,
-                                                  self.i.minute, self.i.second,
-                                                  sys.version_info[0])
-
+    def test_bad_project(self):
+        #Test project misnamed/not preset
+        data_name_2 = 'ndio_test_1'
         ai_2 = AutoIngest.AutoIngest()
-        ai_2.add_channel(data_name_2, 'uint8', 'image',
-                         DATA_SITE, 'SLICE', 'tif')
-
-        ai_2.add_project(data_name_2, data_name_2, 1)
-        ai_2.add_dataset(data_name_2, (512, 512, 1), (1.0, 1.0, 1.0))
+        ai_2.add_channel(data_name_2, 'uint8', 'image', DATA_SITE, 'SLICE', 'tif')
+        ai_2.add_project('data_name_2', data_name_2, 1)
+        ai_2.add_dataset(data_name_2, (512, 512, 1), (1.0, 1.0, 10.0))
         ai_2.add_metadata('')
+        assert (ai_2.output_json()=='Failure')
 
-        ai_2.output_json()
-
+    def test_bad_dataset(self):
+        #Test dataset misnamed/not preset
+        data_name_3 = 'ndio_test_1'
         ai_3 = AutoIngest.AutoIngest()
-        ai_3.post_data(site_host=SERVER_SITE,
-                       verifytype='Folder',
-                       file_name="/tmp/ND.json")
-
-        url = "{}/ocp/ca/{}/{}/npz/0/0,500/0,500/0,1/".format(SERVER_SITE,
-                                                              data_name_2,
-                                                              data_name_2)
-        response = requests.get(url)
-
-        try:
-            self.assertEqual(response.headers['content-type'], 'product/npz')
-        except:
-            raise ValueError(response.content, url)
-
-    def test_output_json(self):
-        data_name_3 = "ndiotest3"
-
-        ai_3 = AutoIngest.AutoIngest()
-        ai_3.add_channel(data_name_3, 'uint8',
-                         'image', DATA_SITE, 'SLICE', 'tif')
-
+        ai_3.add_channel(data_name_3, 'uint8', 'image', DATA_SITE, 'SLICE', 'tif')
         ai_3.add_project(data_name_3, data_name_3, 1)
-        ai_3.add_dataset(data_name_3, (512, 512, 1), (1.0, 1.0, 1.0))
+        ai_3.add_dataset('data_name_3', (512, 512, 1), (1.0, 1.0, 10.0))
         ai_3.add_metadata('')
+        assert (ai_3.output_json()=='Failure')
 
-        ai_3.output_json("/tmp/ND2.json")
+    def test_bad_token(self):
+        #Test naming not correct
+        data_name_4 = 'ndio_test_1'
+        ai_4 = AutoIngest.AutoIngest()
+        ai_4.add_channel(data_name_4, 'uint8', 'image', DATA_SITE, 'SLICE', 'tif')
+        ai_4.add_project(data_name_4, 'data_name_4', 1)
+        ai_4.add_dataset(data_name_4, (512, 512, 1), (1.0, 1.0, 10.0))
+        ai_4.add_metadata('')
+        assert (ai_4.output_json()=='Failure')
+        #Test not available in remote (Name already taken)
+        data_name_5 = 'ndio_test_1'
+        ai_5 = AutoIngest.AutoIngest()
+        ai_5.add_channel(data_name_5, 'uint8', 'image', DATA_SITE, 'SLICE', 'tif')
+        ai_5.add_project(data_name_5, 'ndiotest120162251533152', 1)
+        ai_5.add_dataset(data_name_5, (512, 512, 1), (1.0, 1.0, 10.0))
+        ai_5.add_metadata('')
+        assert (ai_5.output_json()=='Failure')
 
-        with open("/tmp/ND2.json") as data_file:
-            test_json = json.load(data_file)
+    def test_bad_type(self):
+        #Test incorrect type
+        data_name_6 = 'ndio_test_1'
+        ai_6 = AutoIngest.AutoIngest()
+        ai_6.add_channel(data_name_6, 'uint16', 'image', DATA_SITE, 'SLICE', 'tif')
+        ai_6.add_project(data_name_6, data_name_6, 1)
+        ai_6.add_dataset(data_name_6, (512, 512, 1), (1.0, 1.0, 10.0))
+        ai_6.add_metadata('')
+        assert (ai_6.output_json()=='Failure')
 
-        truth_json = {
-            "channels": {
-                "ndiotest3": {
-                    "data_url": DATA_SITE,
-                    "file_type": "tif",
-                    "file_format": "SLICE",
-                    "datatype": "uint32",
-                    "channel_type": "image",
-                    "channel_name": "ndiotest3",
-                    "readonly": 0,
-                    "exceptions": 0,
-                    "resolution": 0
-                }
-            },
-            "project": {
-                "project_name": "ndiotest3",
-                "public": 1,
-                "token_name": "ndiotest3"
-            },
-            "metadata": "",
-            "dataset": {
-                "imagesize": [500, 500, 1],
-                "voxelres": [1.0, 1.0, 1.0],
-                "timerange": [0, 0],
-                "scaling": 0,
-                "scalinglevels": 0,
-                "offset": [0, 0, 0],
-                "dataset_name": "ndiotest3"
-            }
-        }
+    def test_bad_url(self):
+        #Test URL not HTTP available
+        data_name_7 = 'ndio_test_1'
+        ai_7 = AutoIngest.AutoIngest()
+        ai_7.add_channel(data_name_7, 'uint8', 'image', DATA_SITE, 'SLICE', 'tif')
+        ai_7.add_project(data_name_7, data_name_7, 1)
+        ai_7.add_dataset(data_name_7, (512, 512, 1), (1.0, 1.0, 10.0))
+        ai_7.add_metadata('')
+        assert (ai_7.output_json()=='Failure')
 
-        try:
-            self.assertEqual(list(test_json.copy().keys()).sort(),
-                             list(truth_json.copy().keys()).sort())
-        except:
-            raise ValueError(list(test_json.copy().keys()).sort(),
-                             "\nVersus\n",
-                             list(truth_json.copy().keys()).sort())
-"""
+    def test_bad_image(self):
+        #Test mismatched dimensions
+        data_name_8 = 'ndio_test_1'
+        ai_8 = AutoIngest.AutoIngest()
+        ai_8.add_channel(data_name_8, 'uint8', 'image', DATA_SITE, 'SLICE', 'tif')
+        ai_8.add_project(data_name_8, data_name_8, 1)
+        ai_8.add_dataset(data_name_8, (510, 510, 1), (1.0, 1.0, 10.0))
+        ai_8.add_metadata('')
+        assert (ai_8.output_json()=='Failure')
+
+        #Test naming not correct (offset and max)
+        data_name_9 = 'ndio_test_2'
+        ai_9 = AutoIngest.AutoIngest()
+        ai_9.add_channel(data_name_9, 'uint8', 'image', DATA_SITE, 'SLICE', 'tif')
+        ai_9.add_project(data_name_9, data_name_9, 1)
+        ai_9.add_dataset(data_name_9, (512, 512, 1), (1.0, 1.0, 10.0))
+        ai_9.add_metadata('')
+        assert (ai_9.output_json()=='Failure')
+
+    def test_bad_name(self):
+        #Test a forbidden character
+        data_name_10 = 'ndio@test@1'
+        ai_10 = AutoIngest.AutoIngest()
+        ai_10.add_channel(data_name_10, 'uint8', 'image', DATA_SITE, 'SLICE', 'tif')
+        ai_10.add_project(data_name_10, data_name_10, 1)
+        ai_10.add_dataset(data_name_10, (512, 512, 1), (1.0, 1.0, 10.0))
+        ai_10.add_metadata('')
+        assert (ai_10.output_json()=='Failure')
 
 if __name__ == '__main__':
     unittest.main()
