@@ -5,7 +5,6 @@ import numpy
 import h5py
 import os
 import random
-
 import json
 
 
@@ -23,6 +22,7 @@ class TestRAMON(unittest.TestCase):
             str(self.ramon_id),
             json.loads(ramon.to_json(r))['1']['id']
         )
+
 
 if __name__ == '__main__':
     unittest.main()
