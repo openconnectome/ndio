@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 import numpy
 
+
 def to_voxels(array):
     """
     Converts an array to its voxel list.
@@ -14,6 +15,7 @@ def to_voxels(array):
     if type(array) is not numpy.ndarray:
         raise ValueError("array argument must be of type numpy.ndarray")
     return numpy.argwhere(array)
+
 
 def from_voxels(voxels):
     """
