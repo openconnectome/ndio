@@ -59,7 +59,6 @@ setup(
         "numpy",
         "h5py",
         "requests",
-        "scipy",
         "blosc",
     ]
 )
