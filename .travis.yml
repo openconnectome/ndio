@@ -16,6 +16,5 @@ install:
 cache:
     - pip
     - apt
-    - /home/travis/virtualenv/python2.7.9/lib/python2.7/site-packages
 script:
     - python -m unittest discover
