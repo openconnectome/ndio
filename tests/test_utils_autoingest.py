@@ -78,7 +78,7 @@ class TestAutoIngest(unittest.TestCase):
         ai_5.add_dataset(data_name_5, (512, 512, 1), (1.0, 1.0, 10.0))
         ai_5.add_metadata('')
         #assert (ai_5.output_json()=='Failure')
-        self.assertRaises(ValueError, ai_5.output_json)
+        self.assertRaises(OSError, ai_5.output_json)
 
     #Currently this is not possible, but keeping as a future goal
     """
