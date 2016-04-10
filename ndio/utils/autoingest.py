@@ -25,6 +25,12 @@ import ndio.convert.png as ndpng
 VERIFY_BY_FOLDER = 'Folder'
 VERIFY_BY_SLICE = 'Slice'
 
+#https://raw.githubusercontent.com/neurodata/ndstore/ae-doc-edits/docs/sphinx/dataset_schema.json
+#https://raw.githubusercontent.com/neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json
+#https://raw.githubusercontent.com/neurodata/ndstore/ae-doc-edits/docs/sphinx/project_schema.json
+
+
+
 CHANNEL_SCHEMA = load({
     "$schema": "http://json-schema.org/draft-04/schema#",
     "title": "Schema for Channel JSON object for ingest",

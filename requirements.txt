@@ -6,3 +6,4 @@ pymcubes
 pycollada
 blosc
 jsonschema
+json-spec

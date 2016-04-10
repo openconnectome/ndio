@@ -14,6 +14,7 @@ install:
     - sudo pip install --install-option='--no-cython-compile' cython
     - pip install .
     - pip install jsonschema
+    - pip install json-spec
 cache:
     - pip
     - apt
