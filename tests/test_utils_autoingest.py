@@ -8,7 +8,7 @@ import os
 import numpy
 import sys
 
-#SERVER_SITE = 'http://ec2-54-201-19-176.us-west-2.compute.amazonaws.com/'
+SERVER_SITE = 'http://ec2-54-201-19-176.us-west-2.compute.amazonaws.com/'
 DATA_SITE = 'http://ec2-54-200-215-161.us-west-2.compute.amazonaws.com/'
 S3_SITE = 'http://ndios3test.s3.amazonaws.com/'
 
@@ -17,8 +17,8 @@ class TestAutoIngest(unittest.TestCase):
 
     def setUp(self):
         self.i = datetime.datetime.now()
-        #self.oo = nd(SERVER_SITE[len('http://'):])
-        self.oo = nd()
+        self.oo = nd(SERVER_SITE[len('http://'):])
+        #self.oo = nd()
         #self.AI = AutoIngest()
 
     def test_remote_exists(self):
@@ -32,7 +32,7 @@ class TestAutoIngest(unittest.TestCase):
         ai_1.add_project(data_name_1, data_name_1, 1)
         ai_1.add_dataset(data_name_1, (512, 512, 1), (1.0, 1.0, 10.0))
         ai_1.add_metadata('')
-        self.assertRaises(IOError, ai_1.output_json)
+        self.assertRaises(OSError, ai_1.output_json)
         """
     def test_bad_project(self):
         #Test project misnamed/not preset
@@ -42,7 +42,7 @@ class TestAutoIngest(unittest.TestCase):
         ai_2.add_project('data_name_2', data_name_2, 1)
         ai_2.add_dataset(data_name_2, (512, 512, 1), (1.0, 1.0, 10.0))
         ai_2.add_metadata('')
-        with self.assertRaises(IOError):
+        with self.assertRaises(OSError):
             ai_2.output_json()
 
     def test_bad_dataset(self):
@@ -60,21 +60,28 @@ class TestAutoIngest(unittest.TestCase):
         data_name_4 = 'ndio_test_1'
         ai_4 = AutoIngest.AutoIngest()
         ai_4.add_channel(data_name_4, 'uint8', 'image', DATA_SITE, 'SLICE', 'tif')
-        ai_4.add_project('data_name_4', data_name_4, 1)
+        ai_4.add_project(data_name_4, 'ndiotest120162251533152', 1)
         ai_4.add_dataset(data_name_4, (512, 512, 1), (1.0, 1.0, 10.0))
         ai_4.add_metadata('')
         #assert (ai_4.output_json()=='Failure')
-        self.assertRaises(IOError, ai_4.output_json)
-        #Test not available in remote (Name already taken)
+        #ai_4.output_json()
+        #with self.assertRaises(OSError):
+        #    ai_4.output_json()
+
+        self.assertRaises(OSError, ai_4.output_json)
+
+        #Test not available in remote (Name already taken)OS
         data_name_5 = 'ndio_test_1'
         ai_5 = AutoIngest.AutoIngest()
         ai_5.add_channel(data_name_5, 'uint8', 'image', DATA_SITE, 'SLICE', 'tif')
-        ai_5.add_project(data_name_5, 'ndiotest120162251533152', 1)
+        ai_5.add_project('ndiotest120162251533152', 'ndiotest120162251533152', 1)
         ai_5.add_dataset(data_name_5, (512, 512, 1), (1.0, 1.0, 10.0))
         ai_5.add_metadata('')
         #assert (ai_5.output_json()=='Failure')
-        self.assertRaises(IOError, ai_5.output_json)
+        self.assertRaises(ValueError, ai_5.output_json)
 
+    #Currently this is not possible, but keeping as a future goal
+    """
     def test_bad_type(self):
         #Test incorrect data type
         data_name_6 = 'ndio_test_1'
@@ -83,8 +90,9 @@ class TestAutoIngest(unittest.TestCase):
         ai_6.add_project(data_name_6, data_name_6, 1)
         ai_6.add_dataset(data_name_6, (512, 512, 1), (1.0, 1.0, 10.0))
         ai_6.add_metadata('')
-        #assert (ai_6.output_json()=='Failure')
+        #assert (ai_6.output_json()=='Failure')-
         self.assertRaises(TypeError, ai_6.output_json)
+    """
 
     def test_bad_url(self):
         #Test URL not HTTP available
@@ -99,6 +107,7 @@ class TestAutoIngest(unittest.TestCase):
 
     def test_bad_image(self):
         #Test mismatched dimensions
+        """
         data_name_8 = 'ndio_test_1'
         ai_8 = AutoIngest.AutoIngest()
         ai_8.add_channel(data_name_8, 'uint8', 'image', DATA_SITE, 'SLICE', 'tif')
@@ -106,6 +115,7 @@ class TestAutoIngest(unittest.TestCase):
         ai_8.add_dataset(data_name_8, (510, 510, 1), (1.0, 1.0, 10.0))
         ai_8.add_metadata('')
         self.assertRaises(ValueError, ai_8.output_json)
+        """
 
         #Test naming not correct (offset and max)
         data_name_9 = 'ndio_test_2'
@@ -115,9 +125,9 @@ class TestAutoIngest(unittest.TestCase):
         ai_9.add_dataset(data_name_9, (512, 512, 1), (1.0, 1.0, 10.0))
         ai_9.add_metadata('')
         #assert (ai_9.output_json()=='Failure')
-        self.assertRaises(IOError, ai_9.output_json)
-        with self.assertRaises(ValueError):
-            ai_9.output_json()
+        self.assertRaises(OSError, ai_9.output_json)
+        #with self.assertRaises(ValueError):
+        #    ai_9.output_json()
 
         #Test incorrect image type
         data_name_11 = 'ndio_test_1'

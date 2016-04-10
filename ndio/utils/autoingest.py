@@ -387,23 +387,22 @@ class AutoIngest:
             project_dict['public'] = public
         return project_dict
 
-    def identify_imagetype(self, data):
-      """Identify the image type here with some parameters"""
-      # UA TODO Implement what we will discuss here
-      #
-      pass
-      return NotImplemented
-
-    def identify_imagesize(self, work_path, image_type):
+    def identify_imagesize(self, image_type, image_path='/tmp/img.'):
       """Identify the image size using the data location and other parameters"""
-      # UA TODO Implement what we will discuss here
+      dims = ()
+      try:
+          if (image_type.lower()=='png'):
+              dims = ndpng.import_png('{}{}'.format(image_path,image_type))
+          elif(image_type.lower()=='tif' or image_type.lower()=='tiff'):
+              dims = ndtiff.import_tiff('{}{}'.format(image_path,image_type))
+          else:
+              raise ValueError("Unsupported image type.")
 
-      resp = requests.get(work_path, stream=True)
-      with open('/tmp/img.{}'.format(image_type),
-              'wb') as out_file:
-          shutil.copyfileobj(resp.raw, out_file)
-      if (image_type.lower()=='png'):
-          nd.import_png('/tmp/img.png')
+      except:
+          raise OSError('The file was not accessible at {}{}\
+          '.format(image_path,image_type))
+
+      return dims
 
 
     def verify_path(self, data, verifytype):
@@ -418,9 +417,9 @@ class AutoIngest:
         #UA TODO determine if the return will be in json for token not
         #existing
         try:
-            response = requests.post(URLPath, data=json.dumps(data))
+            response = requests.get(URLPath)
         except:
-            raise IOError("Error code contacting {} with code {} \
+            raise OSError("Error code contacting {} with code {} \
                 ".format(URLPath, response.status_code))
 
         if (str(response.content.decode("utf-8")) != "Token {} does not \
@@ -439,6 +438,7 @@ exist".format(token_name)):
                 raise ValueError("Project and Dataset information Inconistent")
 
         channel_names = list(data["channels"].copy().keys())
+        imgsz = data['dataset']['imagesize']
 
         for i in range(0, len(channel_names)):
             channel_type = data["channels"][
@@ -487,13 +487,24 @@ exist".format(token_name)):
                             assert(resp.status_code == 200)
                         elif (verifytype == VERIFY_BY_SLICE):
                             resp = requests.get(work_path, stream=True)
-                            with open('/tmp/img.{}'.format(channel_type),
+                            with open('/tmp/img.{}'.format(file_type),
                                     'wb') as out_file:
                                 shutil.copyfileobj(resp.raw, out_file)
+                            out_file.close()
                             assert(resp.status_code == 200)
-                    except:
-                        raise IOError('Files are not http accessible: \
+                            resp.close()
+                    except AssertionError:
+                        raise OSError('Files are not http accessible: \
                             Error: {}'.format(resp.status_code))
+                    #Attempt to Verify imagesize here
+                    """
+                    try:
+                        if (verifytype == VERIFY_BY_SLICE):
+                            assert(list(self.identify_imagesize(file_type))==imgsz)
+                    except:
+                        raise ValueError('File image size does not match\
+                        provided image size.')
+                    """
 
             else:
                 # Test for tifs or such? Currently test for just not empty
@@ -507,19 +518,27 @@ exist".format(token_name)):
                 else:
                     raise TypeError('Incorrect verify method')
                 #Check for accessibility
+                if (verifytype == VERIFY_BY_FOLDER):
+                    resp = requests.head(work_path)
+                elif (verifytype == VERIFY_BY_SLICE):
+                    resp = requests.get(work_path, stream=True)
+                    with open('/tmp/img.{}'.format(file_type),
+                            'wb') as out_file:
+                        shutil.copyfileobj(response.raw, out_file)
+                    out_file.close()
+                    resp.close()
+                if (resp.status_code >= 300):
+                    raise OSError('Files are not http accessible: \
+URL: {}'.format(work_path))
+                #Attempt to Verify imagesize here
+                """
                 try:
-                    if (verifytype == VERIFY_BY_FOLDER):
-                        resp = requests.head(work_path)
-                        assert(resp.status_code == 200)
-                    elif (verifytype == VERIFY_BY_SLICE):
-                        resp = requests.get(work_path, stream=True)
-                        with open('/tmp/img.{}'.format(channel_type),
-                                'wb') as out_file:
-                            shutil.copyfileobj(response.raw, out_file)
-                        assert(resp.status_code == 200)
+                    if (verifytype == VERIFY_BY_SLICE):
+                        assert(list(self.identify_imagesize(file_type))==imgsz)
                 except:
-                    raise IOError('Files are not http accessible: \
-                        URL: {}'.format(work_path))
+                    raise ValueError('File image size does not match\
+                    provided image size.')
+                """
 
 
             #By Here the path should have been verified
@@ -554,14 +573,11 @@ exist".format(token_name)):
         # Check if names contain bad chars. Underscore is allowed
         spec_chars = re.compile(".*[$&+,:;=?@#|'<>.^*()%!-].*")
 
-        try:
-          for i in names:
-              if(spec_chars.match(i)):
+        for i in names:
+            if(spec_chars.match(i)):
                 raise ValueError("Error. No special characters allowed \
 including: $&+,:;=?@#|'<>.^*()%!-].* in dataset, project, channel or token \
 names")
-        except ValueError as e:
-          print e.args
 
 
     def put_data(self, data):
@@ -573,7 +589,7 @@ names")
             assert(response.status_code == 200)
             print("From ndio: {}".format(response.content))
         except:
-            raise IOError("Error in posting JSON file {}\
+            raise OSError("Error in posting JSON file {}\
 ".format(reponse.status_code))
 
 
@@ -608,7 +624,7 @@ names")
                 with open(file_name) as data_file:
                     data = json.load(data_file)
             except:
-                raise IOError("Error opening file")
+                raise OSError("Error opening file")
 
         self.verify_path(data, verifytype)
         self.verify_json(data)
@@ -631,11 +647,5 @@ names")
         self.verify_path(data, VERIFY_BY_SLICE)
 
         f = open(file_name, 'w')
-        f.write(data)
+        f.write(str(data))
         f.close()
-
-class JsonVerifyFail(Exception):
-    def __init___(self,dErrorArguments=None):
-        Exception.__init__(self,"The following fields contain characters \
-that are invalid {0}".format(dErrArguments))
-        self.dErrorArguments = dErrorArguements

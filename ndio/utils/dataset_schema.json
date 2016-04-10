@@ -5,31 +5,28 @@
     "properties": {
         "dataset_name": {
             "description": "The name of the dataset",
-            "type": "string"
+            "type": "string",
+            "pattern": "^[^$&+,:;=?@#|'<>.^*()%!-]+$"
         },
         "imagesize": {
-            "properties" : {
-                "type": "array",
-                "description": "The image dimensions of the dataset",
-            }
+            "type": "array",
+            "description": "The image dimensions of the dataset",
+            "pattern": "^\([0-9]+,[0-9]+,[0-9]+\)$"
         },
         "voxelres": {
-            "properties" : {
-                "description": "The voxel resolutoin of the data",
-                "type": "array",
-            }
+            "type": "array",
+            "description": "The voxel resolutoin of the data",
+            "pattern": "^\([0-9]+\.[0-9]+,[0-9]+\.[0-9]+,[0-9]+\.[0-9]+\)$"
         },
         "offset": {
-            "properties" : {
-                "type": "array",
-                "description": "The dimensions offset from origin",
-            }
+            "type": "array",
+            "description": "The dimensions offset from origin",
+            "pattern": "^\([0-9]+,[0-9]+,[0-9]+\)$"
         },
         "timerange": {
-            "properties" : {
-                "description": "The timerange of the data",
-                "type": "array",
-            }
+            "description": "The timerange of the data",
+            "type": "array",
+            "pattern": "^\([0-9]+,[0-9]+\)$"
         },
         "scalinglevels": {
             "description": "Required Scaling levels/ Zoom out levels",
