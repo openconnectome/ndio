@@ -1,6 +1,11 @@
 from __future__ import absolute_import
 import tempfile
 import json as jsonlib
+import csv
+try:
+    from cStringIO import StringIO
+except:
+    from io import StringIO
 import copy
 import six
 
@@ -37,11 +42,11 @@ So you can create a new RAMON object of dynamic type like this:
     ndio.ramon.RAMONNeuron.RAMONNeuron
 
 NOTE! If you already have an HDF5 file that contains a RAMON object, it is far
-easier to use the prebuilt `hdf5_to_ramon()` function (below).
+easier to use the prebuilt `from_hdf5()` function (below).
 
     >>> import h5py
     >>> f = h5py.File('myfile.hdf5', 'r')
-    >>> r = hdf5_to_ramon(f)
+    >>> r = from_hdf5(f)
 
 """
 
@@ -114,7 +119,21 @@ class AnnotationType:
             return _ramon_types[_types[typ]]
 
 
-def to_json(ramons):
+def to_dict(ramons, flatten=False):
+    if type(ramons) is not list:
+        ramons = [ramons]
+
+    out_ramons = {}
+    for r in ramons:
+        out_ramons[r.id] = {
+            "id": r.id,
+            "type": _reverse_ramon_types[type(r)],
+            "metadata": vars(r)
+        }
+    return out_ramons
+
+
+def to_json(ramons, flatten=False):
     """
     Converts RAMON objects into a JSON string which can be directly written out
     to a .json file. You can pass either a single RAMON or a list. If you pass
@@ -127,6 +146,8 @@ def to_json(ramons):
 
     Arguments:
         ramons (RAMON or list): The RAMON object(s) to convert to JSON.
+        flatten (bool : False): If ID should be used as a key. If not, then
+            a single JSON document is returned.
 
     Returns:
         str: The JSON representation of the RAMON objects, in the schema:
@@ -154,6 +175,9 @@ def to_json(ramons):
             "type": _reverse_ramon_types[type(r)],
             "metadata": vars(r)
         }
+
+    if flatten:
+        return jsonlib.dumps(out_ramons.values()[0])
 
     return jsonlib.dumps(out_ramons)
 
@@ -199,10 +223,14 @@ def from_json(json, cutout=None):
         )
 
         if rdata['type'] == 'segment':
-            if 'segmentclass' in _md: r.segmentclass = _md['segmentclass']
-            if 'neuron' in _md: r.neuron = _md['neuron']
-            if 'synapses' in _md: r.synapses = _md['synapses'][:]
-            if 'organelles' in _md: r.organelles = _md['organelles'][:]
+            if 'segmentclass' in _md:
+                r.segmentclass = _md['segmentclass']
+            if 'neuron' in _md:
+                r.neuron = _md['neuron']
+            if 'synapses' in _md:
+                r.synapses = _md['synapses'][:]
+            if 'organelles' in _md:
+                r.organelles = _md['organelles'][:]
 
         elif rdata['type'] == 'neuron':
             r.segments = _md['segments'][:]
@@ -211,16 +239,19 @@ def from_json(json, cutout=None):
             r.organelle_class = _md['organelleclass'][:]
 
         elif rdata['type'] == 'synapse':
-            if 'synapse_type' in _md: r.synapse_type = _md['synapse_type']
-            if 'weight' in _md: r.weight = _md['weight']
-            if 'segments' in _md: r.segments = _md['segments'][:]
+            if 'synapse_type' in _md:
+                r.synapse_type = _md['synapse_type']
+            if 'weight' in _md:
+                r.weight = _md['weight']
+            if 'segments' in _md:
+                r.segments = _md['segments'][:]
 
         out_ramons.append(r)
 
     return out_ramons
 
 
-def hdf5_to_ramon(hdf5, anno_id=None):
+def from_hdf5(hdf5, anno_id=None):
     """
     Converts an HDF5 file to a RAMON object. Returns an object that is a child-
     -class of RAMON (though it's determined at run-time what type is returned).
@@ -241,7 +272,7 @@ def hdf5_to_ramon(hdf5, anno_id=None):
 
     if anno_id is None:
         # The user just wants the first item we find, so... Yeah.
-        return hdf5_to_ramon(hdf5, list(hdf5.keys())[0])
+        return from_hdf5(hdf5, list(hdf5.keys())[0])
 
     # First, get the actual object we're going to download.
     anno_id = str(anno_id)
@@ -313,7 +344,7 @@ def hdf5_to_ramon(hdf5, anno_id=None):
     return r
 
 
-def ramon_to_hdf5(ramon, hdf5=None):
+def to_hdf5(ramon, hdf5=None):
     """
     Exports a RAMON object to an HDF5 file object.
 
@@ -329,7 +360,7 @@ def ramon_to_hdf5(ramon, hdf5=None):
     """
 
     if issubclass(type(ramon), RAMONBase) is False:
-        raise InvalidRAMONError("Invalid RAMON supplied to ramon_to_hdf5.")
+        raise InvalidRAMONError("Invalid RAMON supplied to ramon.to_hdf5.")
 
     import h5py
     import numpy
@@ -348,15 +379,15 @@ def ramon_to_hdf5(ramon, hdf5=None):
         grp.create_dataset("ANNOTATION_TYPE", (1,),
                            numpy.uint32,
                            data=AnnotationType.get_int(type(ramon)))
-        if hasattr(ramon, 'resolution'):
-            grp.create_dataset('RESOLUTION', (1,),
-                               numpy.uint32, data=ramon.resolution)
-        if hasattr(ramon, 'xyz_offset'):
-            grp.create_dataset('XYZOFFSET', (3,),
-                               numpy.uint32, data=ramon.xyz_offset)
+
         if hasattr(ramon, 'cutout'):
-            grp.create_dataset('CUTOUT', ramon.cutout.shape,
-                               ramon.cutout.dtype, data=ramon.cutout)
+            if ramon.cutout is not None:
+                grp.create_dataset('CUTOUT', ramon.cutout.shape,
+                                   ramon.cutout.dtype, data=ramon.cutout)
+                grp.create_dataset('RESOLUTION', (1,),
+                                   numpy.uint32, data=ramon.resolution)
+                grp.create_dataset('XYZOFFSET', (3,),
+                                   numpy.uint32, data=ramon.xyz_offset)
 
         # Next, add general metadata.
         metadata = grp.create_group('METADATA')
@@ -364,6 +395,17 @@ def ramon_to_hdf5(ramon, hdf5=None):
         metadata.create_dataset('AUTHOR', (1,),
                                 dtype=h5py.special_dtype(vlen=str),
                                 data=ramon.author)
+        # kvpairs = ' '.join(
+        #     ','.join([k,v]) for k, v in six.iteritems(ramon.kvpairs)
+        # )
+
+        fstring = StringIO()
+        csvw = csv.writer(fstring, delimiter=',')
+        csvw.writerows([r for r in six.iteritems(ramon.kvpairs)])
+
+        metadata.create_dataset('KVPAIRS', (1,),
+                                dtype=h5py.special_dtype(vlen=str),
+                                data=fstring.getvalue())
         metadata.create_dataset('CONFIDENCE', (1,), numpy.float,
                                 data=ramon.confidence)
         metadata.create_dataset('STATUS', (1,), numpy.uint32,
@@ -373,7 +415,8 @@ def ramon_to_hdf5(ramon, hdf5=None):
 
         if hasattr(ramon, 'segments'):
             metadata.create_dataset('SEGMENTS',
-                                    data=numpy.ndarray(ramon.segments))
+                                    data=numpy.asarray(ramon.segments,
+                                                       dtype=numpy.uint32))
 
         if hasattr(ramon, 'synapse_type'):
             metadata.create_dataset('SYNAPSE_TYPE', (1,), numpy.uint32,
@@ -405,6 +448,7 @@ def ramon_to_hdf5(ramon, hdf5=None):
             metadata.create_dataset('ORGANELLECLASS', (1,),
                                     numpy.uint32,
                                     data=ramon.organelle_class)
-
+        hdf5.flush()
+        tmpfile.seek(0)
         return tmpfile
     return False
