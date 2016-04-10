@@ -5,4 +5,4 @@ requests
 pymcubes
 pycollada
 blosc
-jsonspec
+jsonschema

@@ -13,7 +13,7 @@ install:
     - sudo apt-get install python-nose
     - sudo pip install --install-option='--no-cython-compile' cython
     - pip install .
-    - pip install jsonspec
+    - pip install jsonschema
 cache:
     - pip
     - apt
