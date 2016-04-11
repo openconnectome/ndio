@@ -25,30 +25,7 @@ import ndio.convert.png as ndpng
 VERIFY_BY_FOLDER = 'Folder'
 VERIFY_BY_SLICE = 'Slice'
 
-#https://raw.githubusercontent.com/neurodata/ndstore/ae-doc-edits/docs/sphinx/dataset_schema.json
-#https://raw.githubusercontent.com/neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json
-#https://raw.githubusercontent.com/neurodata/ndstore/ae-doc-edits/docs/sphinx/project_schema.json
-
-rd = requests.get('https://raw.githubusercontent.com/neurodata/ndstore/ae-doc-edits/docs/sphinx/dataset_schema.json')
-if (rd.status_code < 300):
-    DATASET_SCHEMA = load(eval(str(rd.text)))
-else:
-    raise OSError("Dataset schema not available")
-
-rc = requests.get('https://raw.githubusercontent.com/neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
-if (rc.status_code < 300):
-    CHANNEL_SCHEMA = load(eval(str(rc.text)))
-else:
-    raise OSError("Channel schema not available")
-
-rp = requests.get('https://raw.githubusercontent.com/neurodata/ndstore/ae-doc-edits/docs/sphinx/project_schema.json')
-if (rp.status_code < 300):
-    PROJECT_SCHEMA = load(eval(str(rp.text)))
-else:
-    raise OSError("Project schema not available")
-
-
-class AutoIngest:
+class NDIngest:
 
     def __init__(self, site_host=None):
         """
@@ -67,6 +44,30 @@ class AutoIngest:
             self.oo = nd(site_host)
         else:
             self.oo = nd()
+
+        rd = requests.get(
+            'https://raw.githubusercontent.com/\
+neurodata/ndstore/ae-doc-edits/docs/sphinx/dataset_schema.json')
+        if (rd.status_code < 300):
+            self.DATASET_SCHEMA = load(eval(str(rd.text)))
+        else:
+            raise OSError("Dataset schema not available")
+
+        rc = requests.get(
+            'https://raw.githubusercontent.com/\
+neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
+        if (rc.status_code < 300):
+            self.CHANNEL_SCHEMA = load(eval(str(rc.text)))
+        else:
+            raise OSError("Channel schema not available")
+
+        rp = requests.get(
+            'https://raw.githubusercontent.com\
+/neurodata/ndstore/ae-doc-edits/docs/sphinx/project_schema.json')
+        if (rp.status_code < 300):
+            self.PROJECT_SCHEMA = load(eval(str(rp.text)))
+        else:
+            raise OSError("Project schema not available")
 
     def add_channel(
         self, channel_name, datatype, channel_type, data_url, file_format,
@@ -254,7 +255,7 @@ class AutoIngest:
         self, channel_name, datatype, channel_type, data_url, file_format,
             file_type, exceptions, resolution,
             windowrange, readonly):
-        """Genearte the project dictionary"""
+        """Generate the project dictionary"""
         channel_dict = {}
         channel_dict['channel_name'] = channel_name
         channel_dict['datatype'] = datatype
@@ -289,7 +290,8 @@ class AutoIngest:
         return project_dict
 
     def identify_imagesize(self, image_type, image_path='/tmp/img.'):
-      """Identify the image size using the data location and other parameters"""
+      """Identify the image size using the data location and other
+      parameters"""
       dims = ()
       try:
           if (image_type.lower()=='png'):
@@ -451,14 +453,14 @@ URL: {}'.format(work_path))
         for i in range(0, len(channel_names)):
             channel_object = data["channels"][channel_names[i]]
             try:
-                CHANNEL_SCHEMA.validate(channel_object)
+                self.CHANNEL_SCHEMA.validate(channel_object)
             except:
                 raise ValueError("channel " + channel_object["channel_name"])
             names.append(channel_object["channel_name"])
         # Dataset"
         dataset_object = data["dataset"]
         try:
-            DATASET_SCHEMA.validate(dataset_object)
+            self.DATASET_SCHEMA.validate(dataset_object)
         except:
             raise ValueError("Error in dataset parameters")
         names.append(dataset_object["dataset_name"])
@@ -466,7 +468,7 @@ URL: {}'.format(work_path))
         # Project
         project_object = data["project"]
         try:
-            PROJECT_SCHEMA.validate(project_object)
+            self.PROJECT_SCHEMA.validate(project_object)
         except:
             raise ValueError("Error in project parameters")
         names.append(project_object["project_name"])
