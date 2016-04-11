@@ -323,17 +323,17 @@ neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
             ))
 
         if (str(response.content.decode("utf-8")) !=
-            "Token {} does not exist".format(token_name)):
+                "Token {} does not exist".format(token_name)):
             online_data = response.content
             try:
-                assert(online_data['dataset']['name']
-                    == data['dataset']['dataset_name'])
-                assert(online_data['dataset']['imagesize']
-                    == data['dataset']['imagesize'])
-                assert(online_data['dataset']['offset']
-                    == data['dataset']['offset'])
-                assert(online_data['project']['name']
-                    == data['project']['project_name'])
+                assert(online_data['dataset']['name'] ==
+                       data['dataset']['dataset_name'])
+                assert(online_data['dataset']['imagesize'] ==
+                       data['dataset']['imagesize'])
+                assert(online_data['dataset']['offset'] ==
+                       data['dataset']['offset'])
+                assert(online_data['project']['name'] ==
+                       data['project']['project_name'])
             except:
                 raise ValueError("Project and Dataset information Inconistent")
 
@@ -380,7 +380,7 @@ neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
                             ("%04d" % offset), file_type)
                     else:
                         raise TypeError('Incorrect verify method')
-                    #Check for accessibility
+                    # Check for accessibility
                     try:
                         if (verifytype == VERIFY_BY_FOLDER):
                             resp = requests.head(work_path)
@@ -388,7 +388,7 @@ neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
                         elif (verifytype == VERIFY_BY_SLICE):
                             resp = requests.get(work_path, stream=True)
                             with open('/tmp/img.{}'.format(file_type),
-                                    'wb') as out_file:
+                                      'wb') as out_file:
                                 shutil.copyfileobj(resp.raw, out_file)
                             out_file.close()
                             assert(resp.status_code == 200)
@@ -396,7 +396,7 @@ neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
                     except AssertionError:
                         raise OSError('Files are not http accessible: \
                             Error: {}'.format(resp.status_code))
-                    #Attempt to Verify imagesize here
+                    # Attempt to Verify imagesize here
                     """
                     try:
                         if (verifytype == VERIFY_BY_SLICE):
@@ -417,20 +417,20 @@ neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
                         ("%04d" % offset), file_type)
                 else:
                     raise TypeError('Incorrect verify method')
-                #Check for accessibility
+                # Check for accessibility
                 if (verifytype == VERIFY_BY_FOLDER):
                     resp = requests.head(work_path)
                 elif (verifytype == VERIFY_BY_SLICE):
                     resp = requests.get(work_path, stream=True)
                     with open('/tmp/img.{}'.format(file_type),
-                            'wb') as out_file:
+                              'wb') as out_file:
                         shutil.copyfileobj(response.raw, out_file)
                     out_file.close()
                     resp.close()
                 if (resp.status_code >= 300):
                     raise OSError('Files are not http accessible: \
 URL: {}'.format(work_path))
-                #Attempt to Verify imagesize here
+                # Attempt to Verify imagesize here
                 """
                 try:
                     if (verifytype == VERIFY_BY_SLICE):
@@ -439,9 +439,7 @@ URL: {}'.format(work_path))
                     raise ValueError('File image size does not match\
                     provided image size.')
                 """
-
-
-            #By Here the path should have been verified
+            # By Here the path should have been verified
 
     def verify_json(self, data):
         names = []
@@ -479,7 +477,6 @@ URL: {}'.format(work_path))
 including: $&+,:;=?@#|'<>.^*()%!-].* in dataset, project, channel or token \
 names")
 
-
     def put_data(self, data):
         # try to post data to the server
 
@@ -492,9 +489,9 @@ names")
             raise OSError("Error in posting JSON file {}\
 ".format(reponse.status_code))
 
-
     def post_data(self,
-        file_name=None, legacy=False, verifytype=VERIFY_BY_SLICE):
+                  file_name=None, legacy=False,
+                  verifytype=VERIFY_BY_SLICE):
         """
         Arguements:
             file_name(str): The file name of the json file to post (optional).
