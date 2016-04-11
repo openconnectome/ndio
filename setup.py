@@ -60,5 +60,7 @@ setup(
         "h5py",
         "requests",
         "blosc",
+        "jsonschema",
+        "json-spec"
     ]
 )
