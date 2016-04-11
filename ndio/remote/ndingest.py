@@ -25,6 +25,7 @@ import ndio.convert.png as ndpng
 VERIFY_BY_FOLDER = 'Folder'
 VERIFY_BY_SLICE = 'Slice'
 
+
 class NDIngest:
 
     def __init__(self, site_host=None):
@@ -121,11 +122,12 @@ neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
         Returns:
             None
         """
-        self.channels[
-            channel_name] = [channel_name.strip().replace(" ", ""), datatype,
-                            channel_type.lower(), data_url,
-                            file_format, file_type, exceptions, resolution,
-                            windowrange, readonly]
+        self.channels[channel_name] = [
+            channel_name.strip().replace(" ", ""), datatype,
+            channel_type.lower(), data_url,
+            file_format, file_type, exceptions, resolution,
+            windowrange, readonly
+        ]
 
     def add_project(self, project_name, token_name=None, public=None):
         """
@@ -147,27 +149,24 @@ neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
             None
         """
         self.project = (project_name.strip().replace(" ", ""),
-                            token_name.strip().replace(" ", ""), public)
+                        token_name.strip().replace(" ", ""), public)
 
-    def add_dataset(self, dataset_name, imagesize, voxelres,
-                    offset=None, timerange=None, scalinglevels=None,
-                    scaling=None):
+    def add_dataset(self, dataset_name, imagesize, voxelres, offset=None,
+                    timerange=None, scalinglevels=None, scaling=None):
+
         self.dataset = (dataset_name.strip().replace(" ", ""), imagesize,
-                            voxelres, offset, timerange, scalinglevels,
-                            scaling)
+                        voxelres, offset, timerange, scalinglevels, scaling)
         """
         Arguments:
             dataset_name (str): Dataset Name is the overarching name of the
-            research effort. Standard naming convention is to do
-            LabNamePublicationYear or LeadResearcherCurrentYear.
-
+                research effort. Standard naming convention is to do
+                LabNamePublicationYear or LeadResearcherCurrentYear.
             imagesize (int, int, int): Image size is the pixel count
-            dimensions of the data. For example is the data is stored as a
-            series of 100 slices each 2100x2000 pixel TIFF images, the X,Y,Z
-            dimensions are (2100, 2000, 100).
-
-            voxelres (flt, flt, flt): Voxel Resolution is the number of
-            voxels per unit pixel. We store X,Y,Z voxel resolution separately.
+                dimensions of the data. For example is the data is stored as a
+                series of 100 slices each 2100x2000 pixel TIFF images, the X,Y,Z
+                dimensions are (2100, 2000, 100).
+            voxelres (float, float, float): Voxel Resolution is the number of
+                voxels per unit pixel. We store X,Y,Z voxel resolution separately.
 
             offset (int, int, int): If your data is not well aligned and
             there is "excess" image data you do not wish to examine, but
@@ -290,23 +289,26 @@ neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
         return project_dict
 
     def identify_imagesize(self, image_type, image_path='/tmp/img.'):
-      """Identify the image size using the data location and other
-      parameters"""
-      dims = ()
-      try:
-          if (image_type.lower()=='png'):
-              dims = ndpng.import_png('{}{}'.format(image_path,image_type))
-          elif(image_type.lower()=='tif' or image_type.lower()=='tiff'):
-              dims = ndtiff.import_tiff('{}{}'.format(image_path,image_type))
-          else:
-              raise ValueError("Unsupported image type.")
-
-      except:
-          raise OSError('The file was not accessible at {}{}\
-          '.format(image_path,image_type))
-
-      return dims
-
+        """
+        Identify the image size using the data location and other
+        parameters
+        """
+        dims = ()
+        try:
+            if (image_type.lower() == 'png'):
+                dims = ndpng.import_png('{}{}'.format(image_path, image_type))
+            elif (image_type.lower() == 'tif' or image_type.lower() == 'tiff'):
+                dims = ndtiff.import_tiff('{}{}'.format(
+                    image_path, image_type
+                ))
+            else:
+                raise ValueError("Unsupported image type.")
+        except:
+            raise OSError('The file was not accessible at {}{}'.format(
+                image_path,
+                image_type
+            ))
+        return dims
 
     def verify_path(self, data, verifytype):
         # Insert try and catch blocks
@@ -317,16 +319,15 @@ neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
         # Check if token exists
         URLPath = self.oo.url("{}/info/".format(token_name))
 
-        #UA TODO determine if the return will be in json for token not
-        #existing
+        # UA TODO determine if the return will be in json for token DNE
         try:
             response = requests.get(URLPath)
         except:
-            raise OSError("Error code contacting {} with code {} \
-                ".format(URLPath, response.status_code))
+            raise OSError("Error code contacting {} with code {}".format(
+                URLPath, response.status_code
+            ))
 
-        if (str(response.content.decode("utf-8")) != "Token {} does not \
-exist".format(token_name)):
+        if (str(response.content.decode("utf-8")) != "Token {} does not exist".format(token_name)):
             online_data = response.content
             try:
                 assert(online_data['dataset']['name']
