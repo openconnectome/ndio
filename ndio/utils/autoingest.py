@@ -31,19 +31,19 @@ VERIFY_BY_SLICE = 'Slice'
 
 rd = requests.get('https://raw.githubusercontent.com/neurodata/ndstore/ae-doc-edits/docs/sphinx/dataset_schema.json')
 if (rd.status_code < 300):
-    DATASET_SCHEMA = load(json.loads(str(rd.text)))
+    DATASET_SCHEMA = load(eval(str(rd.text)))
 else:
     raise OSError("Dataset schema not available")
 
 rc = requests.get('https://raw.githubusercontent.com/neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
 if (rc.status_code < 300):
-    CHANNEL_SCHEMA = load(json.loads(str(rc.text)))
+    CHANNEL_SCHEMA = load(eval(str(rc.text)))
 else:
     raise OSError("Channel schema not available")
 
 rp = requests.get('https://raw.githubusercontent.com/neurodata/ndstore/ae-doc-edits/docs/sphinx/project_schema.json')
 if (rp.status_code < 300):
-    PROJECT_SCHEMA = load(json.loads(str(rp.text)))
+    PROJECT_SCHEMA = load(eval(str(rp.text)))
 else:
     raise OSError("Project schema not available")
 
