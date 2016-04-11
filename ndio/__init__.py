@@ -1,5 +1,6 @@
 version = "1.0.0"
 
+
 def check_version():
     """
     Tells you if you have an old version of ndio.
