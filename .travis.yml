@@ -19,5 +19,5 @@ cache:
     - pip
     - apt
 script:
-    - find . -name \*.py -exec pep8 
+    - find . -name \*.py -exec pep8 {} +
     - python -m unittest discover
