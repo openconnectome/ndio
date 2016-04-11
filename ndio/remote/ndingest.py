@@ -397,14 +397,14 @@ neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
                         raise OSError('Files are not http accessible: \
                             Error: {}'.format(resp.status_code))
                     # Attempt to Verify imagesize here
-                    """
+
                     try:
                         if (verifytype == VERIFY_BY_SLICE):
-                            assert(list(self.identify_imagesize(file_type))==imgsz)
+                            assert(list(self.identify_imagesize(file_type)) ==
+                                   imgsz)
                     except:
                         raise ValueError('File image size does not match\
-                        provided image size.')
-                    """
+provided image size.')
 
             else:
                 # Test for tifs or such? Currently test for just not empty
@@ -431,14 +431,15 @@ neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
                     raise OSError('Files are not http accessible: \
 URL: {}'.format(work_path))
                 # Attempt to Verify imagesize here
-                """
+
                 try:
                     if (verifytype == VERIFY_BY_SLICE):
-                        assert(list(self.identify_imagesize(file_type))==imgsz)
+                        assert(list(self.identify_imagesize(file_type)) ==
+                               imgsz)
                 except:
                     raise ValueError('File image size does not match\
-                    provided image size.')
-                """
+provided image size.')
+
             # By Here the path should have been verified
 
     def verify_json(self, data):

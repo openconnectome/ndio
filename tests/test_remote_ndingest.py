@@ -69,7 +69,6 @@ class TestNDIngest(unittest.TestCase):
 
     def test_bad_image(self):
         # Test mismatched dimensions
-        """
         data_name_8 = 'ndio_test_1'
         ai_8 = NDIngest.NDIngest()
         ai_8.add_channel(data_name_8, 'uint8', 'image', DATA_SITE,
@@ -78,7 +77,6 @@ class TestNDIngest(unittest.TestCase):
         ai_8.add_dataset(data_name_8, (510, 510, 1), (1.0, 1.0, 10.0))
         ai_8.add_metadata('')
         self.assertRaises(ValueError, ai_8.output_json)
-        """
 
         # Test naming not correct (offset and max)
         data_name_9 = 'ndio_test_2'
