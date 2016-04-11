@@ -13,8 +13,7 @@ install:
     - sudo apt-get install python-nose
     - sudo pip install --install-option='--no-cython-compile' cython
     - pip install .
-    - pip install jsonschema
-    - pip install json-spec pep8
+    - pip install pep8
 cache:
     - pip
     - apt
