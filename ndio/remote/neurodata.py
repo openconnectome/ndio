@@ -641,10 +641,9 @@ class neurodata(Remote):
                            y_start, z_start, data,
                            resolution)
 
-        return self._post_cutout_with_chunking(
-            self, token, channel, x_start, y_start, z_start, data,
-            resolution, ul_func
-        )
+        return self._post_cutout_with_chunking(token, channel,
+                                               x_start, y_start, z_start, data,
+                                               resolution, ul_func)
 
     def _post_cutout_with_chunking(self, token, channel, x_start,
                                    y_start, z_start, data,
