@@ -604,7 +604,6 @@ class neurodata(Remote):
                     y_start,
                     z_start,
                     data,
-                    dtype='',
                     resolution=0):
         """
         Post a cutout to the server.
@@ -616,7 +615,6 @@ class neurodata(Remote):
             y_start (int)
             z_start (int)
             data (numpy.ndarray): A numpy array of data. Pass in (x, y, z)
-            dtype (str : ''): Pass in explicit datatype, or we use projinfo
             resolution (int : 0): Resolution at which to insert the data
 
         Returns:
@@ -635,31 +633,37 @@ class neurodata(Remote):
 
         if six.PY3 or data.nbytes > 1.5e9:
             ul_func = self._post_cutout_no_chunking_npz
-        elif six.PY2:
-            ul_func = self._post_cutout_no_chunking_blosc
         else:
-            raise OSError("Check yo version of Python!")
+            ul_func = self._post_cutout_no_chunking_blosc
 
         if data.size < self._chunk_threshold:
             return ul_func(token, channel, x_start,
                            y_start, z_start, data,
                            resolution)
-        else:
-            # must chunk first
-            from ndio.utils.parallel import block_compute
-            blocks = block_compute(x_start, x_start + data.shape[2],
-                                   y_start, y_start + data.shape[1],
-                                   z_start, z_start + data.shape[0])
 
-            for b in blocks:
-                subvol = data[b[2][0]-z_start: b[2][1]-z_start,
-                              b[1][0]-y_start: b[1][1]-y_start,
-                              b[0][0]-x_start: b[0][1]-x_start]
-                # upload the chunk:
-                ul_func(token, channel, x_start,
-                        y_start, z_start, subvol,
-                        resolution)
+        return self._post_cutout_with_chunking(
+            self, token, channel, x_start, x_stop,
+            y_start, y_stop, z_start, z_stop, data,
+            resolution, ul_func
+        )
 
+    def _post_cutout_with_chunking(self, token, channel, x_start, x_stop,
+                                   y_start, y_stop, z_start, z_stop, data,
+                                   resolution, ul_func):
+        # must chunk first
+        from ndio.utils.parallel import block_compute
+        blocks = block_compute(x_start, x_start + data.shape[2],
+                               y_start, y_start + data.shape[1],
+                               z_start, z_start + data.shape[0])
+
+        for b in blocks:
+            subvol = data[b[2][0]-z_start: b[2][1]-z_start,
+                          b[1][0]-y_start: b[1][1]-y_start,
+                          b[0][0]-x_start: b[0][1]-x_start]
+            # upload the chunk:
+            ul_func(token, channel, x_start,
+                    y_start, z_start, subvol,
+                    resolution)
         return True
 
     def _post_cutout_no_chunking_npz(self, token, channel,
@@ -836,8 +840,6 @@ class neurodata(Remote):
 
         b_size = min(100, batch_size)
 
-        mdata = self.get_ramon_metadata(token, channel, ids)
-
         _return_first_only = False
         if type(ids) is not list:
             _return_first_only = True
@@ -846,8 +848,7 @@ class neurodata(Remote):
         rs = []
         id_batches = [ids[i:i+b_size] for i in xrange(0, len(ids), b_size)]
         for batch in id_batches:
-            rs.extend(self._get_ramon_batch(token, channel,
-                                            batch, resolution))
+            rs.extend(self._get_ramon_batch(token, channel, batch, resolution))
 
         rs = self._filter_ramon(rs, sieve)
 
