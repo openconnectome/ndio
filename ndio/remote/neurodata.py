@@ -305,8 +305,12 @@ class neurodata(Remote):
         Arguments:
             token (str): The token to write to in LIMS
             channel (str): Channel to add in the subvolume. Can be `None`
-            Q_start (int): The start of the Q dimension
-            Q_stop (int): The top of the Q dimension,
+            x_start (int): Start in x dimension
+            x_stop (int): Stop in x dimension
+            y_start (int): Start in y dimension
+            y_stop (int): Stop in y dimension
+            z_start (int): Start in z dimension
+            z_stop (int): Stop in z dimension
             resolution (int): The resolution at which this subvolume is seen
             title (str): The title to set for the subvolume
             notes (str): Optional extra thoughts on the subvolume
@@ -859,36 +863,46 @@ class neurodata(Remote):
         else:
             rs = self._get_ramon_batch(token, channel, ids, resolution)
 
-        if sieve is not None:
-            rs = [r for r in rs if sieve(r)]
+        rs = self._filter_ramon(rs, sieve)
 
         if include_cutout:
-            for r in rs:
-                if 'cutout' not in dir(r):
-                    continue
-                origin = r.xyz_offset
-                # Get the bounding box (cube-aligned)
-                bbox = self.get_ramon_bounding_box(token, channel,
-                                                   r.id, resolution=resolution)
-                # Get the cutout (cube-aligned)
-                cutout = self.get_cutout(token, channel,
-                                         *bbox, resolution=resolution)
-                cutout[cutout != int(r.id)] = 0
-
-                # Compute upper offset and crop
-                bounds = numpy.argwhere(cutout)
-                mins = [min([i[dim] for i in bounds]) for dim in range(3)]
-                maxs = [max([i[dim] for i in bounds]) for dim in range(3)]
-
-                r.cutout = cutout[
-                    mins[0]:maxs[0],
-                    mins[1]:maxs[1],
-                    mins[2]:maxs[2]
-                ]
+            rs = [self._add_ramon_cutout(token, channel, r, resolution)
+                  for r in rs]
 
         if _return_first_only:
             return rs[0]
+
         return rs
+
+    def _filter_ramon(self, rs, sieve):
+        if sieve is not None:
+            return [r for r in rs if sieve(r)]
+        return rs
+
+    def _add_ramon_cutout(self, token, channel, ramon, resolution):
+        if 'cutout' not in dir(ramon):
+            return ramon
+        origin = ramon.xyz_offset
+        # Get the bounding box (cube-aligned)
+        bbox = self.get_ramon_bounding_box(token, channel,
+                                           ramon.id, resolution=resolution)
+        # Get the cutout (cube-aligned)
+        cutout = self.get_cutout(token, channel,
+                                 *bbox, resolution=resolution)
+        cutout[cutout != int(ramon.id)] = 0
+
+        # Compute upper offset and crop
+        bounds = numpy.argwhere(cutout)
+        mins = [min([i[dim] for i in bounds]) for dim in range(3)]
+        maxs = [max([i[dim] for i in bounds]) for dim in range(3)]
+
+        ramon.cutout = cutout[
+            mins[0]:maxs[0],
+            mins[1]:maxs[1],
+            mins[2]:maxs[2]
+        ]
+
+        return ramon
 
     def _get_ramon_batch(self, token, channel, ids, resolution):
         url = self.url("{}/{}/{}/json/".format(token, channel, ",".join(ids)))
