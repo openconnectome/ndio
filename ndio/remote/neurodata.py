@@ -838,16 +838,10 @@ class neurodata(Remote):
 
         mdata = self.get_ramon_metadata(token, channel, ids)
 
-        BATCH = False
         _return_first_only = False
-
         if type(ids) is not list:
             _return_first_only = True
             ids = [ids]
-
-        if len(ids) > b_size:
-            BATCH = True
-        # now ids is a list of strings
 
         rs = []
         id_batches = [ids[i:i+b_size] for i in xrange(0, len(ids), b_size)]
