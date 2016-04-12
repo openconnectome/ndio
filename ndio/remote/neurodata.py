@@ -892,6 +892,7 @@ class neurodata(Remote):
         return ramon
 
     def _get_ramon_batch(self, token, channel, ids, resolution):
+        ids = [str(i) for i in ids]
         url = self.url("{}/{}/{}/json/".format(token, channel, ",".join(ids)))
         req = requests.get(url)
 
