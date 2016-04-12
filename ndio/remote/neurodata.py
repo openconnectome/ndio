@@ -796,7 +796,7 @@ class neurodata(Remote):
             raise IOError("Could not successfully mock HDF5 file for parsing.")
 
     @_check_token
-    def get_ramon(self, token, channel, ids, resolution=None,
+    def get_ramon(self, token, channel, ids, resolution=0,
                   include_cutout=False, sieve=None, batch_size=100):
         """
         Download a RAMON object by ID.
@@ -838,10 +838,6 @@ class neurodata(Remote):
 
         mdata = self.get_ramon_metadata(token, channel, ids)
 
-        if resolution is None:
-            resolution = 0
-            # probably should be dynamic...
-
         BATCH = False
         _return_first_only = False
 
@@ -854,14 +850,11 @@ class neurodata(Remote):
                 BATCH = True
         # now ids is a list of strings
 
-        if BATCH:
-            rs = []
-            id_batches = [ids[i:i+b_size] for i in xrange(0, len(ids), b_size)]
-            for batch in id_batches:
-                rs.extend(self._get_ramon_batch(token, channel,
-                                                batch, resolution))
-        else:
-            rs = self._get_ramon_batch(token, channel, ids, resolution)
+        rs = []
+        id_batches = [ids[i:i+b_size] for i in xrange(0, len(ids), b_size)]
+        for batch in id_batches:
+            rs.extend(self._get_ramon_batch(token, channel,
+                                            batch, resolution))
 
         rs = self._filter_ramon(rs, sieve)
 
