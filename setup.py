@@ -53,14 +53,15 @@ manipulation.',
     ],
     classifiers=[],
     setup_requires=[
+        "requests",
         'numpy',
     ],
     install_requires=[
-        "pillow",
-        "numpy",
-        "h5py",
+        "pillow>=3.2.0",
+        "numpy>=1.0.0",
+        "h5py>=2.6.0",
         "requests",
-        "blosc",
+        "blosc>=1.3.0",
         "jsonschema",
         "json-spec"
     ]
