@@ -642,13 +642,12 @@ class neurodata(Remote):
                            resolution)
 
         return self._post_cutout_with_chunking(
-            self, token, channel, x_start, x_stop,
-            y_start, y_stop, z_start, z_stop, data,
+            self, token, channel, x_start, y_start, z_start, data,
             resolution, ul_func
         )
 
-    def _post_cutout_with_chunking(self, token, channel, x_start, x_stop,
-                                   y_start, y_stop, z_start, z_stop, data,
+    def _post_cutout_with_chunking(self, token, channel, x_start,
+                                   y_start, z_start, data,
                                    resolution, ul_func):
         # must chunk first
         from ndio.utils.parallel import block_compute
