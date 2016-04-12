@@ -30,7 +30,7 @@ class NDIngest:
 
     def __init__(self, site_host=None):
         """
-        Arguements:
+        Arguments:
             site_host(str): The site host to post the data to, by default
             http://openconnectome.me.
 
@@ -79,41 +79,32 @@ neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
             channel_name (str): Channel Name is the specific name of a
                 specific series of data. Standard naming convention is to do
                 ImageTypeIterationNumber or NameSubProjectName.
-
             datatype (str): The data type is the storage method of data in
                 the channel. It can be uint8, uint16, uint32, uint64, or
                 float32.
-
             channel_type (str): The channel type is the kind of data being
                 stored in the channel. It can be image, annotation, or
                 timeseries.
-
             data_url (str): This url points to the root directory of the
                 files. Dropbox (or any data requiring authentication to
                 download such as private s3) is not an acceptable HTTP
                 Server. See additional instructions in documentation online
                 to format s3 properly so it is http accessible.
-
             file_format (str): File format refers to the overarching kind
                 of data, as in slices (normal image data) or catmaid
                 (tile-based).
-
             file_type (str): File type refers to the specific type of file
                 that the data is stored in, as in, tiff, png, or tif.
-
             exceptions (int): Exceptions is an option to enable the
                 possibility for annotations to contradict each other (assign
                 different values to the same point). 1 corresponds to True,
                 0 corresponds to False.
-
             resolution (int): Resolution is the starting resolution of the
                 data being uploaded to the channel.
-
             windowrange (int, int): Window range is the maximum and minimum
                 pixel values for a particular image. This is used so that the
                 image can be displayed in a readable way for viewing through
                 RESTful calls
-
             readonly (int): This option allows the user to control if,
                 after the initial data commit, the channel is read-only.
                 Generally this is suggested with data that will be publicly
@@ -143,6 +134,7 @@ neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
             public (int): This option allows users to specify if they want
                 the project/channels to be publicly viewable/search-able.
                 (1, 0) = (TRUE, FALSE)
+
         Returns:
             None
         """
@@ -196,7 +188,7 @@ neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
         self.metadata = metadata
 
         """
-        Arguements:
+        Arguments:
             metadata(str): Any metadata as appropriate from the LIMS schema
 
         Returns:
@@ -494,19 +486,16 @@ names")
                   file_name=None, legacy=False,
                   verifytype=VERIFY_BY_SLICE):
         """
-        Arguements:
-            file_name(str): The file name of the json file to post (optional).
-            If this is left unspecified it is assumed the data is in the
-            AutoIngest object.
-
-            dev(bool): If pushing to a microns dev branch server set this
-            to True, if not leave False.
-
-            verifytype(enum): Set http verification type, by checking the
-            first slice is accessible or by checking channel folder.
-            NOTE: If verification occurs by folder there is NO image size
-            or type verification.
-            Enum: [Folder, Slice]
+        Arguments:
+            file_name (str): The file name of the json file to post (optional).
+                If this is left unspecified it is assumed the data is in the
+                AutoIngest object.
+            dev (bool): If pushing to a microns dev branch server set this
+                to True, if not leave False.
+            verifytype (enum): Set http verification type, by checking the
+                first slice is accessible or by checking channel folder.
+                NOTE: If verification occurs by folder there is NO image size
+                or type verification. Enum: [Folder, Slice]
 
         Returns:
             None
@@ -530,9 +519,8 @@ names")
 
     def output_json(self, file_name='/tmp/ND.json'):
         """
-        Arguements:
-            file_name(str): The file name to store the json to, by default
-            /tmp/ND.json
+        Arguments:
+            file_name(str : '/tmp/ND.json'): The file name to store the json to
 
         Returns:
             None
