@@ -844,7 +844,7 @@ class neurodata(Remote):
             ids = [ids]
 
         rs = []
-        id_batches = [ids[i:i+b_size] for i in xrange(0, len(ids), b_size)]
+        id_batches = [ids[i:i+b_size] for i in range(0, len(ids), b_size)]
         for batch in id_batches:
             rs.extend(self._get_ramon_batch(token, channel, batch, resolution))
 
@@ -1018,7 +1018,7 @@ class neurodata(Remote):
         # If there are too many to fit in one batch, split here and call this
         # function recursively.
         if len(r) > batch_size:
-            batches = [r[i:i+b_size] for i in xrange(0, len(r), b_size)]
+            batches = [r[i:i+b_size] for i in range(0, len(r), b_size)]
             for batch in batches:
                 self.post_ramon(token, channel, batch, b_size)
             return
