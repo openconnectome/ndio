@@ -844,10 +844,9 @@ class neurodata(Remote):
         if type(ids) is not list:
             _return_first_only = True
             ids = [ids]
-        if type(ids) is list:
-            ids = [str(i) for i in ids]
-            if len(ids) > b_size:
-                BATCH = True
+
+        if len(ids) > b_size:
+            BATCH = True
         # now ids is a list of strings
 
         rs = []
