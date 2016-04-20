@@ -63,8 +63,8 @@ class NDIngest:
             raise Value("Project schema not available")
 
     def add_channel(self, channel_name, datatype, channel_type,
-            data_url, file_format, file_type, exceptions=None,
-            resolution=None, windowrange=None, readonly=None):
+                    data_url, file_format, file_type, exceptions=None,
+                    resolution=None, windowrange=None, readonly=None):
         """
         Arguments:
             channel_name (str): Channel Name is the specific name of a
