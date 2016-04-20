@@ -7,3 +7,4 @@ pycollada
 blosc
 jsonschema
 json-spec
+nibabel
