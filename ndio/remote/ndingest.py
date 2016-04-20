@@ -12,6 +12,14 @@ import ndio.convert.png as ndpng
 VERIFY_BY_FOLDER = 'Folder'
 VERIFY_BY_SLICE = 'Slice'
 
+# schema base
+SCHEMA_BASE = "https://" + "/".join([
+    "raw.githubusercontent.com",
+    "neurodata/ndstore",
+    "master",
+    "/docs/sphinx"
+])
+
 
 class NDIngest:
     """
@@ -36,25 +44,19 @@ class NDIngest:
         else:
             self.oo = nd()
 
-        rd = requests.get(
-            'https://raw.githubusercontent.com/\
-neurodata/ndstore/ae-doc-edits/docs/sphinx/dataset_schema.json')
+        rd = requests.get('{}/dataset_schema.json'.format(SCHEMA_BASE))
         if (rd.status_code < 300):
             self.DATASET_SCHEMA = load(eval(str(rd.text)))
         else:
             raise OSError("Dataset schema not available")
 
-        rc = requests.get(
-            'https://raw.githubusercontent.com/\
-neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
+        rc = requests.get('{}/channel_schema.json'.format(SCHEMA_BASE))
         if (rc.status_code < 300):
             self.CHANNEL_SCHEMA = load(eval(str(rc.text)))
         else:
             raise OSError("Channel schema not available")
 
-        rp = requests.get(
-            'https://raw.githubusercontent.com\
-/neurodata/ndstore/ae-doc-edits/docs/sphinx/project_schema.json')
+        rp = requests.get('{}/project_schema.json'.format(SCHEMA_BASE))
         if (rp.status_code < 300):
             self.PROJECT_SCHEMA = load(eval(str(rp.text)))
         else:
