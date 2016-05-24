@@ -280,9 +280,9 @@ class NDIngest:
         dims = ()
         try:
             if (image_type.lower() == 'png'):
-                dims = ndpng.import_png('{}{}'.format(image_path, image_type))
+                dims = ndpng.load('{}{}'.format(image_path, image_type))
             elif (image_type.lower() == 'tif' or image_type.lower() == 'tiff'):
-                dims = ndtiff.import_tiff('{}{}'.format(
+                dims = ndtiff.load('{}{}'.format(
                     image_path, image_type
                 ))
             else:
@@ -365,10 +365,10 @@ class NDIngest:
                     # empty
                     if (verifytype == VERIFY_BY_FOLDER):
                         work_path = "{}/{}/{}/time{}/".format(
-                            path, token_name, channel_names[i], j)
+                            path, token_name, channel_names[i], ("%04d" % j))
                     elif (verifytype == VERIFY_BY_SLICE):
                         work_path = "{}/{}/{}/time{}/{}.{}".format(
-                            path, token_name, channel_names[i], j,
+                            path, token_name, channel_names[i], ("%04d" % j),
                             ("%04d" % offset), file_type)
                     else:
                         raise TypeError('Incorrect verify method')
@@ -477,7 +477,7 @@ names")
         """
         Try to post data to the server.
         """
-        URLPath = self.oo.url("autoIngest")
+        URLPath = self.oo.url("autoIngest/")
         try:
             response = requests.post(URLPath, data=json.dumps(data))
             assert(response.status_code == 200)
