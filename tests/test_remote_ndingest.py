@@ -24,7 +24,6 @@ class TestNDIngest(unittest.TestCase):
 
     def test_bad_channel(self):
         # Test channel misnamed/not preset
-        """
         data_name_1 = 'ndio_test_1'
         ai_1 = NDIngest.NDIngest()
         ai_1.add_channel('data_name_1', 'uint8', 'image', DATA_SITE, 'SLICE',
@@ -33,11 +32,9 @@ class TestNDIngest(unittest.TestCase):
         ai_1.add_dataset(data_name_1, (512, 512, 1), (1.0, 1.0, 10.0))
         ai_1.add_metadata('')
         self.assertRaises(OSError, ai_1.output_json)
-        """
 
     def test_bad_token(self):
         # Test naming not correct
-        """
         data_name_4 = 'ndio_test_1'
         ai_4 = NDIngest.NDIngest()
         ai_4.add_channel(data_name_4, 'uint8', 'image', DATA_SITE, 'SLICE',
@@ -47,10 +44,8 @@ class TestNDIngest(unittest.TestCase):
         ai_4.add_metadata('')
 
         self.assertRaises(OSError, ai_4.output_json)
-        """
 
         # Test not available in remote (Name already taken)OS
-        """
         data_name_5 = 'ndio_test_1'
         ai_5 = NDIngest.NDIngest()
         ai_5.add_channel(data_name_5, 'uint8', 'image', DATA_SITE, 'SLICE',
@@ -60,7 +55,6 @@ class TestNDIngest(unittest.TestCase):
         ai_5.add_dataset(data_name_5, (512, 512, 1), (1.0, 1.0, 10.0))
         ai_5.add_metadata('')
         self.assertRaises(OSError, ai_5.output_json)
-        """
 
     def test_bad_url(self):
         # Test URL not HTTP available
@@ -75,7 +69,6 @@ class TestNDIngest(unittest.TestCase):
 
     def test_bad_image(self):
         # Test mismatched dimensions
-        """
         data_name_8 = 'ndio_test_1'
         ai_8 = NDIngest.NDIngest()
         ai_8.add_channel(data_name_8, 'uint8', 'image', DATA_SITE,
@@ -84,10 +77,8 @@ class TestNDIngest(unittest.TestCase):
         ai_8.add_dataset(data_name_8, (510, 510, 1), (1.0, 1.0, 10.0))
         ai_8.add_metadata('')
         self.assertRaises(ValueError, ai_8.output_json)
-        """
 
         # Test naming not correct (offset and max)
-        """
         data_name_9 = 'ndio_test_2'
         ai_9 = NDIngest.NDIngest()
         ai_9.add_channel(data_name_9, 'uint8', 'image', DATA_SITE,
@@ -96,10 +87,8 @@ class TestNDIngest(unittest.TestCase):
         ai_9.add_dataset(data_name_9, (512, 512, 1), (1.0, 1.0, 10.0))
         ai_9.add_metadata('')
         self.assertRaises(OSError, ai_9.output_json)
-        """
 
         # Test incorrect image type
-        """
         data_name_11 = 'ndio_test_1'
         ai_11 = NDIngest.NDIngest()
         ai_11.add_channel(data_name_11, 'uint8', 'image', DATA_SITE,
@@ -108,7 +97,6 @@ class TestNDIngest(unittest.TestCase):
         ai_11.add_dataset(data_name_11, (512, 512, 1), (1.0, 1.0, 10.0))
         ai_11.add_metadata('')
         self.assertRaises(ValueError, ai_11.output_json)
-        """
 
     def test_bad_name(self):
         # Test a forbidden character
