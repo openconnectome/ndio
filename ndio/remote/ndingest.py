@@ -484,7 +484,7 @@ names")
             print("From ndio: {}".format(response.content))
         except:
             raise OSError("Error in posting JSON file {}\
-".format(reponse.status_code))
+".format(response.status_code))
 
     def post_data(self,
                   file_name=None, legacy=False,
