@@ -18,7 +18,7 @@ class TestNDIngest(unittest.TestCase):
     def setUp(self):
         self.i = datetime.datetime.now()
         self.oo = nd(SERVER_SITE[len('http://'):])
-        
+
     def test_bad_name(self):
         # Test a forbidden character
         data_name_10 = 'ndio@test@1'
