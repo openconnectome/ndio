@@ -30,6 +30,16 @@ class TestNDIngest(unittest.TestCase):
         ai_10.add_metadata('')
         with self.assertRaises(ValueError):
             ai_10.output_json()
+    def test_bad_url(self):
+        # Test URL not HTTP available
+        data_name_7 = 'ndio_test_1'
+        ai_7 = NDIngest.NDIngest()
+        ai_7.add_channel(data_name_7, 'uint8', 'image', "openconnectome",
+                         'SLICE', 'tif')
+        ai_7.add_project(data_name_7, data_name_7, 1)
+        ai_7.add_dataset(data_name_7, (512, 512, 1), (1.0, 1.0, 10.0))
+        ai_7.add_metadata('')
+        self.assertRaises(ValueError, ai_7.output_json)
 
 if __name__ == '__main__':
     unittest.main()
