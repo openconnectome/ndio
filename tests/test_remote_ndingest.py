@@ -30,6 +30,7 @@ class TestNDIngest(unittest.TestCase):
         ai_10.add_metadata('')
         with self.assertRaises(ValueError):
             ai_10.output_json()
+
     def test_bad_url(self):
         # Test URL not HTTP available
         data_name_7 = 'ndio_test_1'
