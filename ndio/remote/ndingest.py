@@ -167,7 +167,7 @@ class NDIngest:
             scaling (int): Scaling is the scaling method of the data being
                 stored. 0 corresponds to a Z-slice orientation (as in a
                 collection of tiff images in which each tiff is a slice on
-                the z plane) where data will be scaled only on the xy plane, 
+                the z plane) where data will be scaled only on the xy plane,
                 not the z plane. 1 corresponds to an isotropic orientation
                 (in which each tiff is a slice on the y plane) where data
                 is scaled along all axis.
@@ -287,7 +287,7 @@ class NDIngest:
                 dims = np.shape(ndtiff.load('{}{}'.format(
                     image_path, image_type
                 )))
-                
+ 
             else:
                 raise ValueError("Unsupported image type.")
         except:
