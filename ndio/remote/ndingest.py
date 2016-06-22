@@ -287,7 +287,7 @@ class NDIngest:
                 dims = np.shape(ndtiff.load('{}{}'.format(
                     image_path, image_type
                 )))
- 
+
             else:
                 raise ValueError("Unsupported image type.")
         except:
