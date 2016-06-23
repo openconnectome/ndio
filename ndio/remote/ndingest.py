@@ -8,6 +8,7 @@ import shutil
 from .neurodata import neurodata as nd
 import ndio.convert.tiff as ndtiff
 import ndio.convert.png as ndpng
+import numpy as np
 
 VERIFY_BY_FOLDER = 'Folder'
 VERIFY_BY_SLICE = 'Slice'
