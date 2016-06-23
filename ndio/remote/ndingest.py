@@ -360,7 +360,7 @@ class NDIngest:
                     try:
                         if (verifytype == VERIFY_BY_SLICE):
                             assert(list(self.identify_imagesize(file_type)) ==
-                                   imgsz)
+                                   imgsz[0:2])
                     except:
                         raise ValueError('File image size does not match\
 provided image size.')
