@@ -8,9 +8,18 @@ import shutil
 from .neurodata import neurodata as nd
 import ndio.convert.tiff as ndtiff
 import ndio.convert.png as ndpng
+import numpy as np
 
 VERIFY_BY_FOLDER = 'Folder'
 VERIFY_BY_SLICE = 'Slice'
+
+# schema base
+SCHEMA_BASE = "https://" + "/".join([
+    "raw.githubusercontent.com",
+    "neurodata/ndstore",
+    "master",
+    "/docs/sphinx"
+])
 
 
 class NDIngest:
@@ -36,34 +45,27 @@ class NDIngest:
         else:
             self.oo = nd()
 
-        rd = requests.get(
-            'https://raw.githubusercontent.com/\
-neurodata/ndstore/ae-doc-edits/docs/sphinx/dataset_schema.json')
+        rd = requests.get('{}/dataset_schema.json'.format(SCHEMA_BASE))
         if (rd.status_code < 300):
             self.DATASET_SCHEMA = load(eval(str(rd.text)))
         else:
             raise OSError("Dataset schema not available")
 
-        rc = requests.get(
-            'https://raw.githubusercontent.com/\
-neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
+        rc = requests.get('{}/channel_schema.json'.format(SCHEMA_BASE))
         if (rc.status_code < 300):
             self.CHANNEL_SCHEMA = load(eval(str(rc.text)))
         else:
             raise OSError("Channel schema not available")
 
-        rp = requests.get(
-            'https://raw.githubusercontent.com\
-/neurodata/ndstore/ae-doc-edits/docs/sphinx/project_schema.json')
+        rp = requests.get('{}/project_schema.json'.format(SCHEMA_BASE))
         if (rp.status_code < 300):
             self.PROJECT_SCHEMA = load(eval(str(rp.text)))
         else:
-            raise OSError("Project schema not available")
+            raise Value("Project schema not available")
 
-    def add_channel(
-        self, channel_name, datatype, channel_type, data_url, file_format,
-            file_type, exceptions=None, resolution=None,
-            windowrange=None, readonly=None):
+    def add_channel(self, channel_name, datatype, channel_type,
+                    data_url, file_format, file_type, exceptions=None,
+                    resolution=None, windowrange=None, readonly=None):
         """
         Arguments:
             channel_name (str): Channel Name is the specific name of a
@@ -163,11 +165,13 @@ neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
                 0, and for each level up the data is down sampled by 2x2
                 (per slice). To learn more about the sampling service used,
                 visit the the propagation service page.
-            scaling (int): Scaling is the orientation of the data being
-                stored, 0 corresponds to a Z-slice orientation (as in a
+            scaling (int): Scaling is the scaling method of the data being
+                stored. 0 corresponds to a Z-slice orientation (as in a
                 collection of tiff images in which each tiff is a slice on
-                the z plane) and 1 corresponds to an isotropic orientation
-                (in which each tiff is a slice on the y plane).
+                the z plane) where data will be scaled only on the xy plane,
+                not the z plane. 1 corresponds to an isotropic orientation
+                (in which each tiff is a slice on the y plane) where data
+                is scaled along all axis.
 
         Returns:
             None
@@ -279,11 +283,14 @@ neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
         dims = ()
         try:
             if (image_type.lower() == 'png'):
-                dims = ndpng.import_png('{}{}'.format(image_path, image_type))
-            elif (image_type.lower() == 'tif' or image_type.lower() == 'tiff'):
-                dims = ndtiff.import_tiff('{}{}'.format(
+                dims = np.shape(ndpng.load('{}{}'.format(
                     image_path, image_type
-                ))
+                )))
+            elif (image_type.lower() == 'tif' or image_type.lower() == 'tiff'):
+                dims = np.shape(ndtiff.load('{}{}'.format(
+                    image_path, image_type
+                )))
+
             else:
                 raise ValueError("Unsupported image type.")
         except:
@@ -291,7 +298,7 @@ neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
                 image_path,
                 image_type
             ))
-        return dims
+        return dims[::-1]
 
     def verify_path(self, data, verifytype):
         """
@@ -302,31 +309,6 @@ neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
             token_name = data["project"]["token_name"]
         except:
             token_name = data["project"]["project_name"]
-        # Check if token exists
-        URLPath = self.oo.url("{}/info/".format(token_name))
-
-        # UA TODO determine if the return will be in json for token DNE
-        try:
-            response = requests.get(URLPath)
-        except:
-            raise OSError("Error code contacting {} with code {}".format(
-                URLPath, response.status_code
-            ))
-
-        if (str(response.content.decode("utf-8")) !=
-                "Token {} does not exist".format(token_name)):
-            online_data = response.content
-            try:
-                assert(online_data['dataset']['name'] ==
-                       data['dataset']['dataset_name'])
-                assert(online_data['dataset']['imagesize'] ==
-                       data['dataset']['imagesize'])
-                assert(online_data['dataset']['offset'] ==
-                       data['dataset']['offset'])
-                assert(online_data['project']['name'] ==
-                       data['project']['project_name'])
-            except:
-                raise ValueError("Project and Dataset information Inconistent")
 
         channel_names = list(data["channels"].copy().keys())
         imgsz = data['dataset']['imagesize']
@@ -337,37 +319,30 @@ neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
             path = data["channels"][channel_names[i]]["data_url"]
             aws_pattern = re.compile("^(http:\/\/)(.+)(\.s3\.amazonaws\.com)")
             file_type = data["channels"][channel_names[i]]["file_type"]
-            if "scaling" in data["dataset"]:
-                if (data["dataset"]["scaling"]) == 0:
-                    if "offset" in data["dataset"]:
-                        offset = data["dataset"]["offset"][0]
-                    else:
-                        offset = 0
-                else:
-                    if "offset" in data["dataset"]:
-                        offset = data["dataset"]["offset"][2]
-                    else:
-                        offset = 0
+            if "offset" in data["dataset"]:
+                offset = data["dataset"]["offset"][0]
             else:
-                if "offset" in data["dataset"]:
-                    offset = data["dataset"]["offset"][0]
-                else:
-                    offset = 0
+                offset = 0
 
             if (aws_pattern.match(path)):
                 verifytype = VERIFY_BY_SLICE
 
             if (channel_type == "timeseries"):
                 timerange = data["dataset"]["timerange"]
+                try:
+                    assert(timerange[0] != timerange[1])
+                except AssertionError:
+                    raise ValueError('Timeseries values are the same, did you\
+specify the time steps?')
                 for j in xrange(timerange[0], timerange[1] + 1):
                     # Test for tifs or such? Currently test for just not
                     # empty
                     if (verifytype == VERIFY_BY_FOLDER):
                         work_path = "{}/{}/{}/time{}/".format(
-                            path, token_name, channel_names[i], j)
+                            path, token_name, channel_names[i], ("%04d" % j))
                     elif (verifytype == VERIFY_BY_SLICE):
                         work_path = "{}/{}/{}/time{}/{}.{}".format(
-                            path, token_name, channel_names[i], j,
+                            path, token_name, channel_names[i], ("%04d" % j),
                             ("%04d" % offset), file_type)
                     else:
                         raise TypeError('Incorrect verify method')
@@ -392,7 +367,7 @@ neurodata/ndstore/ae-doc-edits/docs/sphinx/channel_schema.json')
                     try:
                         if (verifytype == VERIFY_BY_SLICE):
                             assert(list(self.identify_imagesize(file_type)) ==
-                                   imgsz)
+                                   imgsz[0:2])
                     except:
                         raise ValueError('File image size does not match\
 provided image size.')
@@ -415,7 +390,7 @@ provided image size.')
                     resp = requests.get(work_path, stream=True)
                     with open('/tmp/img.{}'.format(file_type),
                               'wb') as out_file:
-                        shutil.copyfileobj(response.raw, out_file)
+                        shutil.copyfileobj(resp.raw, out_file)
                     out_file.close()
                     resp.close()
                 if (resp.status_code >= 300):
@@ -426,7 +401,7 @@ URL: {}'.format(work_path))
                 try:
                     if (verifytype == VERIFY_BY_SLICE):
                         assert(list(self.identify_imagesize(file_type)) ==
-                               imgsz)
+                               imgsz[0:2])
                 except:
                     raise ValueError('File image size does not match\
 provided image size.')
@@ -476,14 +451,14 @@ names")
         """
         Try to post data to the server.
         """
-        URLPath = self.oo.url("autoIngest")
+        URLPath = self.oo.url("autoIngest/")
         try:
             response = requests.post(URLPath, data=json.dumps(data))
             assert(response.status_code == 200)
             print("From ndio: {}".format(response.content))
         except:
             raise OSError("Error in posting JSON file {}\
-".format(reponse.status_code))
+".format(response.status_code))
 
     def post_data(self,
                   file_name=None, legacy=False,

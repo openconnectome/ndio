@@ -46,7 +46,7 @@ def save(filename, numpy_data):
             ill-formed?
     """
     # Expand filename to be absolute
-    png_filename = os.path.expanduser(png_filename)
+    png_filename = os.path.expanduser(filename)
 
     if type(numpy_data) is str:
         fp = open(png_filename, "wb")
@@ -99,7 +99,7 @@ def save_collection(png_filename_base, numpy_data, start_layers_at=1):
     i = start_layers_at
     for layer in numpy_data:
         layer_filename = (str(i).zfill(6)).join(file_base_array) + file_ext
-        output_files.append(export_png(layer_filename, layer))
+        output_files.append(save(layer_filename, layer))
         i += 1
 
     return output_files
