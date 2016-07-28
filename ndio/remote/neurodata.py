@@ -1145,7 +1145,7 @@ class neurodata(Remote):
         Arguments:
             token (str): The token the new channel should be added to
             name (str): The name of the channel to add
-            type (str): Type of the channel to add (e.g. `neurodata.IMAGE`)
+            channel_type (str): Type of the channel to add (e.g. `neurodata.IMAGE`)
             dtype (str): The datatype of the channel's data (e.g. `uint8`)
             readonly (bool): Can others write to this channel?
 
