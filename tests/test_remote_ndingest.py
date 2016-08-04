@@ -7,6 +7,7 @@ import json
 import os
 import numpy
 import sys
+import parameters
 
 SERVER_SITE = 'http://ec2-54-201-19-176.us-west-2.compute.amazonaws.com/'
 DATA_SITE = 'http://ec2-54-200-215-161.us-west-2.compute.amazonaws.com/'
@@ -17,7 +18,7 @@ class TestNDIngest(unittest.TestCase):
 
     def setUp(self):
         self.i = datetime.datetime.now()
-        self.oo = nd(SERVER_SITE[len('http://'):])
+        self.oo = nd(parameters.USER_TOKEN, SERVER_SITE[len('http://'):])
 
     def test_bad_name(self):
         # Test a forbidden character

@@ -3,13 +3,14 @@ import ndio.remote.neurodata as neurodata
 import ndio.remote.errors
 import numpy
 import random
+import parameters
 
 
 class TestXYZZYX(unittest.TestCase):
 
     def setUp(self):
-        self.nd = neurodata()
-        self.nd_force_chunk = neurodata(chunk_threshold=0)
+        self.nd = neurodata(parameters.USER_TOKEN)
+        self.nd_force_chunk = neurodata(parameters.USER_TOKEN, chunk_threshold=0)
 
     def test_post_get_no_chunk(self):
         token = 'ndio_demos'

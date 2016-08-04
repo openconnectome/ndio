@@ -4,12 +4,13 @@ import ndio.remote.errors
 import numpy
 import h5py
 import os
+import parameters
 
 
 class TestReserveIds(unittest.TestCase):
 
     def setUp(self):
-        self.nd = neurodata()
+        self.nd = neurodata(parameters.USER_TOKEN)
 
     def test_reserve_ids(self):
         self.assertEqual(
