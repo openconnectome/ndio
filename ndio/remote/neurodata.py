@@ -903,8 +903,6 @@ class neurodata(Remote):
         return rs
 
     def _add_ramon_cutout(self, token, channel, ramon, resolution):
-        if 'cutout' not in dir(ramon):
-            return ramon
         origin = ramon.xyz_offset
         # Get the bounding box (cube-aligned)
         bbox = self.get_ramon_bounding_box(token, channel,
@@ -1067,12 +1065,9 @@ class neurodata(Remote):
             req = urllib2.Request(url, tmpfile.read())
             res = urllib2.urlopen(req)
 
-            if res.code == 404:
-                raise RemoteDataUploadError('[400] Could not upload {}'
-                                            .format(str(r)))
-            if res.code == 500:
-                raise RemoteDataUploadError('[500] Could not upload {}'
-                                            .format(str(r)))
+            if res.code != 200:
+                raise RemoteDataUploadError('[{}] Could not upload {}'
+                                            .format(res.code, str(r)))
 
             rets = res.read()
             if six.PY3:
