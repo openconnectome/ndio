@@ -58,8 +58,9 @@ manipulation.',
         "numpy>=1.0.0",
         "h5py>=2.6.0",
         "requests",
-        "blosc>=1.3.0",
+        "blosc==1.3.2",
         "jsonschema",
-        "json-spec"
+        "json-spec",
+        "tifffile"
     ]
 )
