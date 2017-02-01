@@ -454,7 +454,7 @@ names")
         Try to post data to the server.
         """
         URLPath = self.oo.url("autoIngest/")
-        try: 
+        try:
             f = open(token_file, 'r')
             token = f.read()
             f.close()
@@ -462,9 +462,10 @@ names")
             raise OSError("Could not read token file. \
 Make sure it only contains the token")
         try:
-            response = requests.post(URLPath, data=json.dumps(data), 
-                headers={'Authorization': 'Token {}'.format( token )}, 
-                verify=False)
+            response = requests.post(URLPath, data=json.dumps(data),
+                                     headers={'Authorization\
+': 'Token {}'.format(token)},
+                                     verify=False)
             assert(response.status_code == 200)
             print("From ndio: {}".format(response.content))
         except:
@@ -494,7 +495,7 @@ Make sure it only contains the token")
                 self.dataset, self.project, self.channels, self.metadata)
             data = json.loads(self.nd_json(*complete_example))
 
-        else: 
+        else:
             try:
                 with open(file_name) as data_file:
                     data = json.load(data_file)
