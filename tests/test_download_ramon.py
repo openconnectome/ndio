@@ -4,12 +4,13 @@ import ndio.ramon as ramon
 import numpy
 import h5py
 import os
+import parameters
 
 
 class TestDownloadRAMON(unittest.TestCase):
 
     def setUp(self):
-        self.nd = neurodata()
+        self.nd = neurodata(parameters.USER_TOKEN)
         self.ramon_id = 1
 
     def test_download_single_ramon_file_count(self):

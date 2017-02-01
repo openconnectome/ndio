@@ -4,12 +4,13 @@ import ndio.remote.errors
 import numpy
 import h5py
 import os
+import parameters
 
 
 class TestPropagate(unittest.TestCase):
 
     def setUp(self):
-        self.nd = neurodata(check_tokens=True)
+        self.nd = neurodata(parameters.USER_TOKEN, check_tokens=True)
 
     def test_propagate_status_fails_on_bad_token(self):
         token = 'this is not a token'

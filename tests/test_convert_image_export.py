@@ -4,12 +4,13 @@ import ndio.ramon
 import ndio.convert.png as ndpng
 import ndio.convert.tiff as ndtiff
 import numpy
+import parameters
 
 
 class TestDownload(unittest.TestCase):
 
     def setUp(self):
-        self.oo = neurodata()
+        self.oo = neurodata(parameters.USER_TOKEN)
 
     def test_export_load(self):
         # kasthuri11/image/xy/3/1000,1100/1000,1100/1000/

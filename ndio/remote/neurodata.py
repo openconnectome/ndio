@@ -22,9 +22,9 @@ try:
 except ImportError:
     import urllib2
 
-DEFAULT_HOSTNAME = "openconnecto.me"
-DEFAULT_SUFFIX = "ocp"
-DEFAULT_PROTOCOL = "http"
+DEFAULT_HOSTNAME = "neurodata.io"
+DEFAULT_SUFFIX = "nd"
+DEFAULT_PROTOCOL = "https"
 DEFAULT_BLOCK_SIZE = (1024, 1024, 16)
 
 
@@ -39,6 +39,7 @@ class neurodata(Remote):
     ANNOTATION = ANNO = 'annotation'
 
     def __init__(self,
+                 user_token,
                  hostname=DEFAULT_HOSTNAME,
                  protocol=DEFAULT_PROTOCOL,
                  meta_root="http://lims.neurodata.io/",
@@ -67,7 +68,7 @@ class neurodata(Remote):
         self._chunk_threshold = kwargs.get('chunk_threshold', 1E9 / 4)
         self._ext = kwargs.get('suffix', DEFAULT_SUFFIX)
         self._known_tokens = []
-
+        self.USER_TOKEN=user_token
         # Prepare meta url
         self.meta_root = meta_root
         if not self.meta_root.endswith('/'):
@@ -99,6 +100,70 @@ class neurodata(Remote):
 
     # SECTION:
     # Utilities
+    def postURL ( self, url, f, headers={} ):
+        """
+        Make a Post call to a URL with the payload in f
+
+        Arguments:
+            url (str : 'https://openconnecto.me/'): The url endpoint to post to
+            f (data : JSONObject): A data payload to be posted
+
+        Returns:
+            HTTPresponse: A requests HTTP object
+        """
+
+        try:
+             resp = requests.post(url, data=f, 
+                                  headers={'Authorization': 
+                                           'Token {}'.format( 
+                                               self.USER_TOKEN )}, 
+                                  verify=False)
+        except Exception as e:
+            return e
+        return resp
+
+    def getURL ( self, url, headers={} ):
+        """
+        Make a GET call to a URL
+
+        Arguments:
+            url (str : 'https://openconnecto.me/'): The url endpoint to GET
+
+        Returns:
+            HTTPresponse: A requests HTTP object
+        """
+
+        try:
+             resp = requests.get(url, 
+                                 headers={'Authorization': 
+                                          'Token {}'.format( 
+                                              self.USER_TOKEN )}, 
+                                 verify=False)
+        except Exception as e:
+            return e
+        return resp
+
+    def delURL ( self, url, headers={} ):
+        """
+        Make a DEL call to a URL
+
+        Arguments:
+            url (str : 'https://openconnecto.me/'): The url endpoint to DEL
+
+        Returns:
+            HTTPresponse: A requests HTTP object
+        """
+
+        try:
+            resp = requests.delete(url, 
+                                   headers={'Authorization': 
+                                            'Token {}'.format( 
+                                                self.USER_TOKEN )}, 
+                                   verify=False)
+        except Exception as e:
+            return e
+        return resp
+
     def ping(self, suffix='public_tokens/'):
         """
         Return the status-code of the API (estimated using the public-tokens
@@ -168,7 +233,7 @@ class neurodata(Remote):
         Returns:
             str[]: list of public tokens
         """
-        r = requests.get(self.url() + "public_tokens/")
+        r = self.getURL(self.url() + "public_tokens/")
         return r.json()
 
     def get_public_datasets(self):
@@ -230,7 +295,7 @@ class neurodata(Remote):
         Returns:
             JSON: representation of proj_info
         """
-        r = requests.get(self.url() + "{}/info/".format(token))
+        r = self.getURL(self.url() + "{}/info/".format(token))
         return r.json()
 
     @_check_token
@@ -295,8 +360,8 @@ class neurodata(Remote):
             RemoteDataUploadError: If the token is already populated, or if
                 there is an issue with your specified `secret` key.
         """
-        req = requests.post(self.meta_url("metadata/ocp/set/" + token),
-                            json=data)
+        req = self.postURL(self.meta_url("metadata/ocp/set/" + token),
+                            data)
 
         if req.status_code != 200:
             raise RemoteDataUploadError(
@@ -596,7 +661,7 @@ class neurodata(Remote):
         if neariso:
             url += "neariso/"
 
-        req = requests.get(url)
+        req = self.getURL(url)
         if req.status_code is not 200:
             raise IOError("Bad server response for {}: {}: {}".format(
                           url,
@@ -624,7 +689,7 @@ class neurodata(Remote):
         if neariso:
             url += "neariso/"
 
-        req = requests.get(url)
+        req = self.getURL(url)
         if req.status_code is not 200:
             raise IOError("Bad server response for {}: {}: {}".format(
                           url,
@@ -722,7 +787,7 @@ class neurodata(Remote):
             z_start, z_start + data.shape[1]
         ))
 
-        req = requests.post(url, data=compressed, headers={
+        req = self.postURL(url, compressed, headers={
             'Content-Type': 'application/octet-stream'
         })
 
@@ -747,7 +812,7 @@ class neurodata(Remote):
             y_start, y_start + data.shape[2],
             z_start, z_start + data.shape[1]
         ))
-        req = requests.post(url, data=blosc_data, headers={
+        req = self.postURL(url, blosc_data, headers={
             'Content-Type': 'application/octet-stream'
         })
 
@@ -777,7 +842,7 @@ class neurodata(Remote):
                                                          r_id, resolution))
 
         r_id = str(r_id)
-        res = requests.get(url)
+        res = self.getURL(url)
 
         if res.status_code != 200:
             rt = self.get_ramon_metadata(token, channel, r_id)[r_id]['type']
@@ -820,7 +885,7 @@ class neurodata(Remote):
                 ramon_type = ramon.AnnotationType.get_int(ramon_type)
             url += "type/{}/".format(str(ramon_type))
 
-        req = requests.get(url)
+        req = self.getURL(url)
 
         if req.status_code is not 200:
             raise RemoteDataNotFoundError('No query results for token {}.'
@@ -928,7 +993,7 @@ class neurodata(Remote):
     def _get_ramon_batch(self, token, channel, ids, resolution):
         ids = [str(i) for i in ids]
         url = self.url("{}/{}/{}/json/".format(token, channel, ",".join(ids)))
-        req = requests.get(url)
+        req = self.getURL(url)
 
         if req.status_code is not 200:
             raise RemoteDataNotFoundError('No data for id {}.'.format(ids))
@@ -983,8 +1048,8 @@ class neurodata(Remote):
             return results
 
     def _get_single_ramon_metadata(self, token, channel, anno_id):
-        req = requests.get(self.url() +
-                           "{}/{}/{}/json/".format(token, channel, anno_id))
+        req = self.getURL(self.url() +
+                          "{}/{}/{}/json/".format(token, channel, anno_id))
         if req.status_code is not 200:
             raise RemoteDataNotFoundError('No data for id {}.'.format(anno_id))
         return req.json()
@@ -1016,7 +1081,7 @@ class neurodata(Remote):
         else:
             a = anno.id
 
-        req = requests.delete(self.url("{}/{}/{}/".format(token, channel, a)))
+        req = self.delURL(self.url("{}/{}/{}/".format(token, channel, a)))
         if req.status_code is not 200:
             raise RemoteDataNotFoundError("Could not delete id {}: {}"
                                           .format(a, req.text))
@@ -1100,7 +1165,7 @@ class neurodata(Remote):
         """
         quantity = str(quantity)
         url = self.url("{}/{}/reserve/{}/".format(token, channel, quantity))
-        req = requests.get(url)
+        req = self.getURL(url)
         if req.status_code is not 200:
             raise RemoteDataNotFoundError('Invalid req: ' + req.status_code)
         out = req.json()
@@ -1120,8 +1185,8 @@ class neurodata(Remote):
         Returns:
             json: The ID as returned by ndstore
         """
-        req = requests.get(self.url() + "/merge/{}/"
-                           .format(','.join([str(i) for i in ids])))
+        req = self.getURL(self.url() + "/merge/{}/"
+                          .format(','.join([str(i) for i in ids])))
         if req.status_code is not 200:
             raise RemoteDataUploadError('Could not merge ids {}'.format(
                                         ','.join([str(i) for i in ids])))
@@ -1170,7 +1235,7 @@ class neurodata(Remote):
             raise ValueError("readonly must be 0 (False) or 1 (True).")
 
         # Good job! You supplied very nice arguments.
-        req = requests.post(self.url("{}/createChannel/".format(token)), json={
+        req = self.postURL(self.url("{}/createChannel/".format(token)), {
             "channels": {
                 name: {
                     "channel_name": name,
@@ -1201,7 +1266,7 @@ class neurodata(Remote):
         Raises:
             RemoteDataUploadError: If the upload fails for some reason.
         """
-        req = requests.post(self.url("{}/deleteChannel/".format(token)), json={
+        req = self.postURL(self.url("{}/deleteChannel/".format(token)), {
             "channels": [name]
         })
 
@@ -1229,7 +1294,7 @@ class neurodata(Remote):
         if self.get_propagate_status(token, channel) is not 0:
             return
         url = self.url('{}/{}/setPropagate/1/'.format(token, channel))
-        req = requests.get(url)
+        req = self.getURL(url)
         if req.status_code is not 200:
             raise RemoteDataUploadError('Propagate fail: {}'.format(req.text))
         return True
@@ -1247,7 +1312,7 @@ class neurodata(Remote):
             str: The status code
         """
         url = self.url('{}/{}/getPropagate/'.format(token, channel))
-        req = requests.get(url)
+        req = self.getURL(url)
         if req.status_code is not 200:
             raise ValueError('Bad pair: {}/{}'.format(token, channel))
         return req.text

@@ -1,12 +1,13 @@
 import unittest
 import ndio.remote.neurodata as neurodata
 import ndio.ramon
+import parameters
 
 
 class TestRAMONSegment(unittest.TestCase):
 
     def setUp(self):
-        self.oo = neurodata()
+        self.oo = neurodata(parameters.USER_TOKEN)
         self.ramon_segment = self.oo.get_ramon('kasthuri2015_ramon_v4',
                                                'neurons', 3, 3,
                                                include_cutout=True)

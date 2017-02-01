@@ -2,12 +2,12 @@ import unittest
 import ndio.remote.neurodata as neurodata
 import ndio.ramon
 import numpy
-
+import parameters
 
 class TestDownload(unittest.TestCase):
 
     def setUp(self):
-        self.oo = neurodata()
+        self.oo = neurodata(parameters.USER_TOKEN)
 
     def test_get_cutout_type(self):
         # kasthuri11/image/xy/3/1000,1100/1000,1100/1000/

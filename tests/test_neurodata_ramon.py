@@ -5,12 +5,13 @@ import numpy
 import h5py
 import os
 import random
+import parameters
 
 
 class TestRAMON(unittest.TestCase):
 
     def setUp(self):
-        self.nd = neurodata()
+        self.nd = neurodata(parameters.USER_TOKEN)
         self.t = 'kasthuri2015_ramon_v4'
         self.c = 'neurons'
         self.ramon_id = 1

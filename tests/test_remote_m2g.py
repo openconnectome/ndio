@@ -3,6 +3,7 @@ import ndio.remote.grute as grute
 from ndio.remote.errors import *
 import ndio.ramon
 import numpy
+import parameters
 
 
 class TestRemoteM2g(unittest.TestCase):
