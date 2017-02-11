@@ -29,7 +29,6 @@ DEFAULT_BLOCK_SIZE = (1024, 1024, 16)
 
 
 class neurodata(Remote):
-
     """
     The NeuroData remote, for interfacing with ndstore, ndlims, and friends.
     """
