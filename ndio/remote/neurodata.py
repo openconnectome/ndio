@@ -29,6 +29,7 @@ DEFAULT_BLOCK_SIZE = (1024, 1024, 16)
 
 
 class neurodata(Remote):
+
     """
     The NeuroData remote, for interfacing with ndstore, ndlims, and friends.
     """
@@ -75,7 +76,7 @@ class neurodata(Remote):
         if not self.meta_root.endswith('/'):
             self.meta_root = self.meta_root + "/"
         if self.meta_root.startswith('https'):
-            self.meta_root = self.meta_root[self.meta_root.index('://')+3:]
+            self.meta_root = self.meta_root[self.meta_root.index('://') + 3:]
         self.meta_protocol = meta_protocol
 
         super(neurodata, self).__init__(hostname, protocol)
@@ -438,7 +439,7 @@ class neurodata(Remote):
             str: binary image data
         """
         vol = self.get_cutout(token, channel, x_start, x_stop, y_start,
-                              y_stop, z_index, z_index+1, resolution)
+                              y_stop, z_index, z_index + 1, resolution)
 
         vol = numpy.squeeze(vol)  # 3D volume to 2D slice
 
@@ -483,7 +484,7 @@ class neurodata(Remote):
         Returns:
             ndio.ramon.RAMONVolume: Downloaded data.
         """
-        size = (x_stop-x_start)*(y_stop-y_start)*(z_stop-z_start)
+        size = (x_stop - x_start) * (y_stop - y_start) * (z_stop - z_start)
         volume = ramon.RAMONVolume()
         volume.xyz_offset = [x_start, y_start, z_start]
         volume.resolution = resolution
@@ -577,9 +578,9 @@ class neurodata(Remote):
                                        (y_stop - y_start),
                                        (x_stop - x_start)), dtype=data.dtype)
 
-                vol[b[2][0]-z_start: b[2][1]-z_start,
-                    b[1][0]-y_start: b[1][1]-y_start,
-                    b[0][0]-x_start: b[0][1]-x_start] = data
+                vol[b[2][0] - z_start: b[2][1] - z_start,
+                    b[1][0] - y_start: b[1][1] - y_start,
+                    b[0][0] - x_start: b[0][1] - x_start] = data
 
             vol = numpy.rollaxis(vol, 1)
             vol = numpy.rollaxis(vol, 2)
@@ -589,10 +590,10 @@ class neurodata(Remote):
                                 x_start, x_stop, y_start, y_stop,
                                 z_start, z_stop, neariso=False):
         url = self.url() + "{}/{}/hdf5/{}/{},{}/{},{}/{},{}/".format(
-           token, channel, resolution,
-           x_start, x_stop,
-           y_start, y_stop,
-           z_start, z_stop
+            token, channel, resolution,
+            x_start, x_stop,
+            y_start, y_stop,
+            z_start, z_stop
         )
 
         if neariso:
@@ -617,10 +618,10 @@ class neurodata(Remote):
                                       z_start, z_stop, neariso=False):
 
         url = self.url() + "{}/{}/blosc/{}/{},{}/{},{}/{},{}/".format(
-           token, channel, resolution,
-           x_start, x_stop,
-           y_start, y_stop,
-           z_start, z_stop
+            token, channel, resolution,
+            x_start, x_stop,
+            y_start, y_stop,
+            z_start, z_stop
         )
 
         if neariso:
@@ -697,9 +698,9 @@ class neurodata(Remote):
                                z_start, z_start + data.shape[0])
         for b in blocks:
             # data coordinate relative to the size of the arra
-            subvol = data[b[2][0]-z_start: b[2][1]-z_start,
-                          b[1][0]-y_start: b[1][1]-y_start,
-                          b[0][0]-x_start: b[0][1]-x_start]
+            subvol = data[b[2][0] - z_start: b[2][1] - z_start,
+                          b[1][0] - y_start: b[1][1] - y_start,
+                          b[0][0] - x_start: b[0][1] - x_start]
             # upload the chunk:
             # upload coordinate relative to x_start, y_start, z_start
             ul_func(token, channel, b[0][0],
@@ -884,7 +885,7 @@ class neurodata(Remote):
         ids = [str(i) for i in ids]
 
         rs = []
-        id_batches = [ids[i:i+b_size] for i in range(0, len(ids), b_size)]
+        id_batches = [ids[i:i + b_size] for i in range(0, len(ids), b_size)]
         for batch in id_batches:
             rs.extend(self._get_ramon_batch(token, channel, batch, resolution))
 
@@ -986,7 +987,7 @@ class neurodata(Remote):
 
     def _get_single_ramon_metadata(self, token, channel, anno_id):
         req = getURL(self.url() +
-                           "{}/{}/{}/json/".format(token, channel, anno_id))
+                     "{}/{}/{}/json/".format(token, channel, anno_id))
         if req.status_code is not 200:
             raise RemoteDataNotFoundError('No data for id {}.'.format(anno_id))
         return req.json()
@@ -1054,7 +1055,7 @@ class neurodata(Remote):
         # If there are too many to fit in one batch, split here and call this
         # function recursively.
         if len(r) > batch_size:
-            batches = [r[i:i+b_size] for i in range(0, len(r), b_size)]
+            batches = [r[i:i + b_size] for i in range(0, len(r), b_size)]
             for batch in batches:
                 self.post_ramon(token, channel, batch, b_size)
             return
@@ -1123,7 +1124,7 @@ class neurodata(Remote):
             json: The ID as returned by ndstore
         """
         req = getURL(self.url() + "/merge/{}/"
-                           .format(','.join([str(i) for i in ids])))
+                     .format(','.join([str(i) for i in ids])))
         if req.status_code is not 200:
             raise RemoteDataUploadError('Could not merge ids {}'.format(
                                         ','.join([str(i) for i in ids])))
@@ -1268,6 +1269,7 @@ class neurodata(Remote):
         if (token == ''):
             token = self._user_token
 
-        return requests.get(url, 
-            headers={'Authorization': 'Token {}'.format( token )}, 
-            verify=False)
+        return requests.get(url,
+                            headers={
+                                'Authorization': 'Token {}'.format(token)},
+                            verify=False)
