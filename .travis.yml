@@ -6,6 +6,14 @@ notifications:
 python:
     - "2.7"
     - "3.5"
+    
+sudo: required
+dist: trusty
+before_install:
+    - mysql -u root -i -e "FLUSH PRIVILEGES; SET PASSWORD FOR 'root'@'localhost' = PASSWORD('neur0data')"
+    - sudo apt-get install apt-transport-https ca-certificates
+    - sudo apt-get update -y;
+
 install:
     - sudo apt-get autoremove
     - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
@@ -29,6 +37,10 @@ cache:
     - pip
     - apt
 script:
+    - echo "Branch $TRAVIS_BRANCH"
+    - sudo ./setup/ndstore_install.sh $TRAVIS_BRANCH
+    - cd /home/neurodata/ndstore/test
+    - sudo py.test
     - find . -name \*.py -exec pep8 {} +
     - ./stylecheck +
     - python -m unittest discover
