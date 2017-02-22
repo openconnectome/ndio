@@ -38,7 +38,8 @@ cache:
     - apt
 script:
     - echo "Branch $TRAVIS_BRANCH"
-    - sudo ./setup/ndstore_install.sh $TRAVIS_BRANCH
+    - git clone http://github.com/neurodata/ndstore
+    - sudo ndstore/setup/ndstore_install.sh
     - cd /home/neurodata/ndstore/test
     - sudo py.test
     - find . -name \*.py -exec pep8 {} +
