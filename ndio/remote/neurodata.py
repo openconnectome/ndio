@@ -986,7 +986,7 @@ class neurodata(Remote):
 
     def _get_single_ramon_metadata(self, token, channel, anno_id):
         req = self.getURL(self.url() +
-                         "{}/{}/{}/json/".format(token, channel, anno_id))
+                          "{}/{}/{}/json/".format(token, channel, anno_id))
         if req.status_code is not 200:
             raise RemoteDataNotFoundError('No data for id {}.'.format(anno_id))
         return req.json()
@@ -1123,7 +1123,7 @@ class neurodata(Remote):
             json: The ID as returned by ndstore
         """
         req = self.getURL(self.url() + "/merge/{}/"
-                         .format(','.join([str(i) for i in ids])))
+                          .format(','.join([str(i) for i in ids])))
         if req.status_code is not 200:
             raise RemoteDataUploadError('Could not merge ids {}'.format(
                                         ','.join([str(i) for i in ids])))
