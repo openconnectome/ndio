@@ -326,7 +326,7 @@ class neurodata(Remote):
 
         if req.status_code is not 201:
             raise RemoteDataUploadError('Could not upload {}'.format(req.text))
-        if req.content == "":
+        if req.content == "" or req.content == b'':
             return True
         else:
             return False
@@ -369,7 +369,7 @@ class neurodata(Remote):
 
         if req.status_code is not 204:
             raise RemoteDataUploadError('Could not delete {}'.format(req.text))
-        if req.content == "":
+        if req.content == "" or req.content == b'':
             return True
         else:
             return False
@@ -1377,7 +1377,7 @@ class neurodata(Remote):
 
         if req.status_code is not 201:
             raise RemoteDataUploadError('Could not upload {}'.format(req.text))
-        if req.content == "":
+        if req.content == "" or req.content == b'':
             return True
         else:
             return False
@@ -1427,7 +1427,7 @@ class neurodata(Remote):
 
         if req.status_code is not 204:
             raise RemoteDataUploadError('Could not delete {}'.format(req.text))
-        if req.content == "":
+        if req.content == "" or req.content == b'':
             return True
         else:
             return False
@@ -1537,7 +1537,7 @@ class neurodata(Remote):
 
         if req.status_code is not 201:
             raise RemoteDataUploadError('Could not upload {}'.format(req.text))
-        if req.content == "":
+        if req.content == "" or req.content == b'':
             return True
         else:
             return False
@@ -1599,7 +1599,7 @@ class neurodata(Remote):
 
         if req.status_code is not 204:
             raise RemoteDataUploadError('Could not delete {}'.format(req.text))
-        if req.content == "":
+        if req.content == "" or req.content == b'':
             return True
         else:
             return False
