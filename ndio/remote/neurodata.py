@@ -227,7 +227,7 @@ class neurodata(Remote):
                                 'Authorization': 'Token {}'.format(token)},
                             verify=False,)
 
-    def post_url(self, url, token='', json={}):
+    def post_url(self, url, token='', json=None, data=None, headers=None):
         """
         Returns a post resquest object taking in a url, user token, and
         possible json information.
@@ -243,11 +243,25 @@ class neurodata(Remote):
         if (token == ''):
             token = self._user_token
 
+        if headers:
+            headers.update({'Authorization': 'Token {}'.format(token)}
+        else:
+            headers = {'Authorization': 'Token {}'.format(token)}
+
+        if json:
+            return requests.post(url,
+                                 headers=headers
+                                 json=json,
+                                 verify=False)
+        if data:
+            return requests.post(url,
+                                 headers=headers
+                                 data=data,
+                                 verify=False)
+
         return requests.post(url,
-                             headers={
-                                 'Authorization': 'Token {}'.format(token)},
-                             json=json,
-                             verify=False,)
+                             headers=headers
+                             verify=False)
 
     def delete_url(self, url, token=''):
         """
@@ -897,9 +911,9 @@ class neurodata(Remote):
             z_start, z_start + data.shape[1]
         ))
 
-        req = requests.post(url, data=compressed, headers={
+        req = post_url(url, data=compressed, headers={
             'Content-Type': 'application/octet-stream'
-        }, verify=False)
+        })
 
         if req.status_code is not 200:
             raise RemoteDataUploadError(req.text)
@@ -922,9 +936,9 @@ class neurodata(Remote):
             y_start, y_start + data.shape[2],
             z_start, z_start + data.shape[1]
         ))
-        req = requests.post(url, data=blosc_data, headers={
+        req = post_url(url, data=blosc_data, headers={
             'Content-Type': 'application/octet-stream'
-        }, verify=False)
+        })
 
         if req.status_code is not 200:
             raise RemoteDataUploadError(req.text)
