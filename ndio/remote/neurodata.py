@@ -471,7 +471,7 @@ class neurodata(Remote):
                 there is an issue with your specified `secret` key.
         """
         req = requests.post(self.meta_url("metadata/ocp/set/" + token),
-                            json=data)
+                            json=data, verify=False)
 
         if req.status_code != 200:
             raise RemoteDataUploadError(
@@ -899,7 +899,7 @@ class neurodata(Remote):
 
         req = requests.post(url, data=compressed, headers={
             'Content-Type': 'application/octet-stream'
-        })
+        }, verify=False)
 
         if req.status_code is not 200:
             raise RemoteDataUploadError(req.text)
@@ -924,7 +924,7 @@ class neurodata(Remote):
         ))
         req = requests.post(url, data=blosc_data, headers={
             'Content-Type': 'application/octet-stream'
-        })
+        }, verify=False)
 
         if req.status_code is not 200:
             raise RemoteDataUploadError(req.text)
@@ -1191,7 +1191,7 @@ class neurodata(Remote):
         else:
             a = anno.id
 
-        req = requests.delete(self.url("{}/{}/{}/".format(token, channel, a)))
+        req = requests.delete(self.url("{}/{}/{}/".format(token, channel, a)), verify=False)
         if req.status_code is not 200:
             raise RemoteDataNotFoundError("Could not delete id {}: {}"
                                           .format(a, req.text))
@@ -1467,7 +1467,7 @@ class neurodata(Remote):
             }
         req = requests.post(self.url("/{}/project/".format(dataset) +
                                      "{}".format(token)),
-                            json={"channels": {channels}})
+                            json={"channels": {channels}}, verify=False)
 
         if req.status_code is not 201:
             raise RemoteDataUploadError('Could not upload {}'.format(req.text))
