@@ -244,7 +244,7 @@ class neurodata(Remote):
             token = self._user_token
 
         if headers:
-            headers.update({'Authorization': 'Token {}'.format(token)}
+            headers.update({'Authorization': 'Token {}'.format(token)})
         else:
             headers = {'Authorization': 'Token {}'.format(token)}
 
