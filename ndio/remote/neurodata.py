@@ -250,17 +250,17 @@ class neurodata(Remote):
 
         if json:
             return requests.post(url,
-                                 headers=headers
+                                 headers=headers,
                                  json=json,
                                  verify=False)
         if data:
             return requests.post(url,
-                                 headers=headers
+                                 headers=headers,
                                  data=data,
                                  verify=False)
 
         return requests.post(url,
-                             headers=headers
+                             headers=headers,
                              verify=False)
 
     def delete_url(self, url, token=''):
