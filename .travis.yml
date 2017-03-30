@@ -42,8 +42,7 @@ cache:
     - pip
     - apt
 script:
-    - cd ~/
-    - ls
+    - cd $TRAVIS_BUILD_DIR
     - ./stylecheck +
     - cd $TRAVIS_BUILD_DIR
     - cd tests
