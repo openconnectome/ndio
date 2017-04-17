@@ -35,7 +35,6 @@ class TestRAMON(unittest.TestCase):
 
 
     def tearDown(self):
-        print 'tearing down'
         dataset_name = 'demo1'
         project_name = 'ndio_demos'
         channel_name = 'image1'
