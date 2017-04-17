@@ -24,7 +24,7 @@ class TestRAMON(unittest.TestCase):
                                       1.0)
         self.nd.create_project(project_name, dataset_name,
                                       'localhost',
-                                      1, 1, 'localhost', 'Redis')
+                                      1)
         self.nd.create_project_token(dataset_name, project_name,
                                             self.t, 1)
         self.nd.create_channel(self.c, project_name,
